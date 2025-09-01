@@ -1667,16 +1667,140 @@
                         // 주문내역을 이미지로 생성
                         const imageData = generateOrderImage(orderData);
 
-                        // 이미지 다운로드
-                        const link = document.createElement("a");
-                        link.download = `주문내역_${orderData.orderNumber}.png`;
-                        link.href = imageData;
-                        link.click();
+                        // 모바일에서 앨범에 저장하는 함수
+                        async function saveImageToAlbum() {
+                            try {
+                                // Canvas를 Blob으로 변환
+                                const canvas = document.createElement("canvas");
+                                const ctx = canvas.getContext("2d");
+                                const img = new Image();
+
+                                img.onload = function () {
+                                    canvas.width = img.width;
+                                    canvas.height = img.height;
+                                    ctx.drawImage(img, 0, 0);
+
+                                    canvas.toBlob(async function (blob) {
+                                        try {
+                                            // 모바일에서 공유 API 사용 (iOS/Android)
+                                            if (
+                                                navigator.share &&
+                                                navigator.canShare
+                                            ) {
+                                                const file = new File(
+                                                    [blob],
+                                                    `주문내역_${orderData.orderNumber}.png`,
+                                                    { type: "image/png" }
+                                                );
+
+                                                if (
+                                                    navigator.canShare({
+                                                        files: [file],
+                                                    })
+                                                ) {
+                                                    await navigator.share({
+                                                        files: [file],
+                                                        title: "주문내역",
+                                                        text: "주문내역 이미지",
+                                                    });
+                                                    showMessage(
+                                                        "✅ 이미지를 공유했습니다. 앨범에 저장하거나 다른 앱으로 전송할 수 있습니다.",
+                                                        "success"
+                                                    );
+                                                    return;
+                                                }
+                                            }
+
+                                            // 공유 API가 지원되지 않는 경우 대체 방법
+                                            if (
+                                                /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                                                    navigator.userAgent
+                                                )
+                                            ) {
+                                                // 모바일 환경 - 새 창에서 이미지 열기
+                                                const url =
+                                                    URL.createObjectURL(blob);
+                                                const newWindow =
+                                                    window.open(url);
+                                                if (newWindow) {
+                                                    showMessage(
+                                                        "✅ 이미지가 새 창에서 열렸습니다. 길게 눌러서 '이미지 저장'을 선택하세요.",
+                                                        "success"
+                                                    );
+                                                } else {
+                                                    // 팝업 차단된 경우 다운로드
+                                                    const link =
+                                                        document.createElement(
+                                                            "a"
+                                                        );
+                                                    link.href = url;
+                                                    link.download = `주문내역_${orderData.orderNumber}.png`;
+                                                    link.click();
+                                                    showMessage(
+                                                        "✅ 이미지가 다운로드되었습니다. 다운로드 폴더에서 확인하세요.",
+                                                        "success"
+                                                    );
+                                                }
+                                                setTimeout(
+                                                    () =>
+                                                        URL.revokeObjectURL(
+                                                            url
+                                                        ),
+                                                    1000
+                                                );
+                                            } else {
+                                                // 데스크톱 환경
+                                                const link =
+                                                    document.createElement("a");
+                                                link.download = `주문내역_${orderData.orderNumber}.png`;
+                                                link.href = imageData;
+                                                link.click();
+                                                showMessage(
+                                                    "✅ 이미지가 다운로드되었습니다.",
+                                                    "success"
+                                                );
+                                            }
+                                        } catch (shareError) {
+                                            console.error(
+                                                "공유 오류:",
+                                                shareError
+                                            );
+                                            // 공유 실패 시 일반 다운로드
+                                            const link =
+                                                document.createElement("a");
+                                            link.download = `주문내역_${orderData.orderNumber}.png`;
+                                            link.href = imageData;
+                                            link.click();
+                                            showMessage(
+                                                "✅ 이미지가 다운로드되었습니다.",
+                                                "success"
+                                            );
+                                        }
+                                    }, "image/png");
+                                };
+
+                                img.src = imageData;
+                            } catch (error) {
+                                console.error("앨범 저장 오류:", error);
+                                // 대체 방법: 일반 다운로드
+                                const link = document.createElement("a");
+                                link.download = `주문내역_${orderData.orderNumber}.png`;
+                                link.href = imageData;
+                                link.click();
+                                showMessage(
+                                    "✅ 이미지가 다운로드되었습니다.",
+                                    "success"
+                                );
+                            }
+                        }
+
+                        // 이미지 저장 실행
+                        saveImageToAlbum();
 
                         // 모달 닫기
                         modal.style.display = "none";
 
-                        // 폼 초기화 및 성공 메시지
+                        // 폼 초기화
                         orderForm.reset();
                         showMessage(
                             "✅ 주문이 성공적으로 접수되었습니다!",
