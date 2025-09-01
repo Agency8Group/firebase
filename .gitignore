@@ -1,0 +1,4 @@
+# 기타 일반적인 제외 파일들
+.DS_Store
+node_modules/
+*.log

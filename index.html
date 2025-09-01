@@ -645,12 +645,13 @@
             </div>
         </div>
 
-            <div style="text-align: center; margin-top: 20px">
-                <button type="button" id="btnAdmin" class="icon-btn">
-                    <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 관리자
-                </button>
-            </div>
+
         </div>
+
+        <!-- 관리자 버튼 (우측 상단) -->
+        <button type="button" id="btnAdmin" class="icon-btn" style="position: fixed; top: 20px; right: 20px; z-index: 1000; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;">
+            <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor" style="margin: 0;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </button>
 
         <!-- Simple Footer -->
         <footer class="simple-footer">
@@ -659,6 +660,9 @@
             </a>
         </footer>
 
+        <!-- 설정 파일 -->
+        <script src="config.js"></script>
+        
         <!-- Firebase SDK -->
         <script type="module">
             // Import the functions you need from the SDKs you need
@@ -1122,8 +1126,8 @@
 
             // 관리자 페이지 열기
             btnAdmin.addEventListener("click", function () {
-                const pin = prompt("관리자 PIN을 입력하세요:");
-                if (pin === "yhjk99") {
+                const pin = prompt("date");
+                if (pin === window.CONFIG.ADMIN_PIN) {
                     window.open("admin.html", "_blank");
                 } else if (pin !== null) {
                     alert("잘못된 PIN입니다.");
