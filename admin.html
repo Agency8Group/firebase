@@ -340,6 +340,75 @@
                 color: #666;
             }
 
+            /* 자동 삭제 경고 스타일 */
+            .auto-delete-warning {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                background-color: #fff3cd;
+                border: 1px solid #ffeaa7;
+                border-radius: 8px;
+                padding: 12px 16px;
+                margin-top: 12px;
+                color: #856404;
+                font-size: 14px;
+                line-height: 1.4;
+            }
+
+            .auto-delete-warning .inline-icon {
+                flex-shrink: 0;
+                width: 20px;
+                height: 20px;
+            }
+
+            .auto-delete-warning span {
+                flex: 1;
+            }
+
+            /* 일괄 처리 도구 스타일 */
+            .bulk-actions {
+                background-color: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                padding: 16px;
+                margin-bottom: 16px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .bulk-actions-info {
+                font-weight: 600;
+                color: #495057;
+            }
+
+            .bulk-actions-buttons {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .btn-sm {
+                padding: 8px 12px;
+                font-size: 12px;
+                min-height: 36px;
+            }
+
+            /* 체크박스 스타일 */
+            .order-checkbox {
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+            }
+
+            #selectAll {
+                width: 16px;
+                height: 16px;
+                cursor: pointer;
+            }
+
             @media (max-width: 768px) {
                 body {
                     padding: 8px;
@@ -465,6 +534,12 @@
             </div>
             <div class="status-bar">
                 <div class="controls">
+                    <button class="btn btn-warning" onclick="filterNewOrdersInProgress()">
+                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 신규주문 진행중
+                    </button>
+                    <button class="btn btn-info" onclick="filterExchangeReturnInProgress()">
+                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg> 교환/반품/취소 진행중
+                    </button>
                     <button class="btn btn-success" onclick="exportToExcel()">
                         <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> Excel 내보내기
                     </button>
@@ -479,6 +554,10 @@
             <div class="orders-section">
                 <div class="section-header">
                     <h2><svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg> 주문 목록</h2>
+                    <div class="auto-delete-warning">
+                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor" style="color: #dc3545;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                        <span>⚠️ 주문 데이터는 7일이 지나면 자동으로 삭제됩니다. 중요한 데이터는 Excel로 다운로드하여 백업하세요.</span>
+                    </div>
                     <div class="filters">
                         <div class="search-fields">
                             <input
@@ -533,9 +612,30 @@
                 </div>
 
                 <div class="table-container">
+                    <!-- 일괄 처리 도구 -->
+                    <div class="bulk-actions" style="display: none;">
+                        <div class="bulk-actions-info">
+                            <span id="selectedCount">0개 선택됨</span>
+                        </div>
+                        <div class="bulk-actions-buttons">
+                            <button class="btn btn-success btn-sm" onclick="bulkUpdateStatus('배송완료')">
+                                <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> 선택된 주문 배송완료
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="bulkUpdateStatus('배송중')">
+                                <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 선택된 주문 배송중
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="bulkUpdateStatus('취소')">
+                                <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> 선택된 주문 취소
+                            </button>
+                        </div>
+                    </div>
+                    
                     <table class="orders-table" id="ordersTable">
                         <thead>
                             <tr>
+                                <th>
+                                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" title="전체 선택">
+                                </th>
                                 <th>주문번호</th>
                                 <th>주문시간</th>
                                 <th>입금자명</th>
@@ -665,6 +765,9 @@
                 const orderDate = new Date(order.createdAt);
 
                 row.innerHTML = `
+                <td>
+                    <input type="checkbox" class="order-checkbox" value="${id}" data-status="${order.status}">
+                </td>
                 <td><strong>${order.orderNumber}</strong></td>
                 <td>${orderDate.toLocaleString("ko-KR")}</td>
                 <td>${order.customerName}</td>
@@ -847,6 +950,125 @@
                     updateStats(data);
                     updateRecentOrders(data);
                 });
+            };
+
+            // 신규주문 진행중 필터링
+            window.filterNewOrdersInProgress = function() {
+                // 필터 초기화
+                document.getElementById('orderTypeFilter').value = '신규주문';
+                document.getElementById('statusFilter').value = '';
+                document.getElementById('dateFilter').value = '';
+                document.getElementById('phoneSearch').value = '';
+                document.getElementById('orderNumberSearch').value = '';
+                
+                // 상태 필터를 '접수' 또는 '배송중'으로 설정
+                const statusFilter = document.getElementById('statusFilter');
+                statusFilter.value = '접수';
+                
+                // 필터 적용
+                filterOrders();
+                
+                // 사용자에게 알림
+                alert('신규주문 중 접수/배송중 상태인 주문만 표시됩니다.');
+            };
+
+            // 교환/반품/취소 진행중 필터링
+            window.filterExchangeReturnInProgress = function() {
+                // 필터 초기화
+                document.getElementById('orderTypeFilter').value = '';
+                document.getElementById('statusFilter').value = '';
+                document.getElementById('dateFilter').value = '';
+                document.getElementById('phoneSearch').value = '';
+                document.getElementById('orderNumberSearch').value = '';
+                
+                // 주문유형을 '교환', '반품', '취소'로 설정
+                const orderTypeFilter = document.getElementById('orderTypeFilter');
+                orderTypeFilter.value = '교환';
+                
+                // 상태 필터를 '접수' 또는 '배송중'으로 설정
+                const statusFilter = document.getElementById('statusFilter');
+                statusFilter.value = '접수';
+                
+                // 필터 적용
+                filterOrders();
+                
+                // 사용자에게 알림
+                alert('교환/반품/취소 중 접수/배송중 상태인 주문만 표시됩니다.');
+            };
+
+            // 전체 선택/해제
+            window.toggleSelectAll = function() {
+                const selectAll = document.getElementById('selectAll');
+                const checkboxes = document.querySelectorAll('.order-checkbox');
+                
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = selectAll.checked;
+                });
+                
+                updateBulkActions();
+            };
+
+            // 체크박스 선택 상태 변경 시 일괄 처리 도구 표시/숨김
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('order-checkbox')) {
+                    updateBulkActions();
+                }
+            });
+
+            // 일괄 처리 도구 업데이트
+            function updateBulkActions() {
+                const checkboxes = document.querySelectorAll('.order-checkbox:checked');
+                const bulkActions = document.querySelector('.bulk-actions');
+                const selectedCount = document.getElementById('selectedCount');
+                
+                if (checkboxes.length > 0) {
+                    bulkActions.style.display = 'block';
+                    selectedCount.textContent = `${checkboxes.length}개 선택됨`;
+                } else {
+                    bulkActions.style.display = 'none';
+                    selectAll.checked = false;
+                }
+            }
+
+            // 일괄 상태 업데이트
+            window.bulkUpdateStatus = function(newStatus) {
+                const checkboxes = document.querySelectorAll('.order-checkbox:checked');
+                
+                if (checkboxes.length === 0) {
+                    alert('선택된 주문이 없습니다.');
+                    return;
+                }
+                
+                const confirmMessage = `선택된 ${checkboxes.length}개 주문의 상태를 '${newStatus}'로 변경하시겠습니까?`;
+                if (!confirm(confirmMessage)) {
+                    return;
+                }
+                
+                let successCount = 0;
+                let errorCount = 0;
+                
+                checkboxes.forEach(checkbox => {
+                    const orderId = checkbox.value;
+                    try {
+                        updateOrderStatus(orderId, newStatus);
+                        successCount++;
+                    } catch (error) {
+                        console.error('상태 업데이트 오류:', error);
+                        errorCount++;
+                    }
+                });
+                
+                // 체크박스 선택 해제
+                checkboxes.forEach(checkbox => checkbox.checked = false);
+                selectAll.checked = false;
+                updateBulkActions();
+                
+                // 결과 알림
+                if (errorCount === 0) {
+                    alert(`${successCount}개 주문의 상태가 '${newStatus}'로 변경되었습니다.`);
+                } else {
+                    alert(`${successCount}개 성공, ${errorCount}개 실패했습니다.`);
+                }
             };
 
             // 7일이 지난 주문 자동 삭제
