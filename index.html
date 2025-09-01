@@ -202,8 +202,9 @@
             /* Radio Button Styles */
             .radio-group {
                 display: flex;
-                gap: 16px;
-                flex-wrap: wrap;
+                flex-direction: column;
+                gap: 6px;
+                flex-wrap: nowrap;
             }
 
             .radio-item {
@@ -216,8 +217,9 @@
                 border-radius: 6px;
                 background: white;
                 transition: all 0.2s ease;
-                min-width: 80px;
-                justify-content: center;
+                width: 100%;
+                justify-content: flex-start;
+                min-height: 36px;
             }
 
             .radio-item:hover {
@@ -230,12 +232,13 @@
             }
 
             .radio-custom {
-                width: 16px;
-                height: 16px;
+                width: 14px;
+                height: 14px;
                 border: 2px solid #ddd;
                 border-radius: 50%;
                 position: relative;
                 transition: all 0.2s ease;
+                flex-shrink: 0;
             }
 
             .radio-item input[type="radio"]:checked + .radio-custom {
@@ -249,8 +252,8 @@
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
-                width: 6px;
-                height: 6px;
+                width: 5px;
+                height: 5px;
                 background: white;
                 border-radius: 50%;
             }
@@ -261,9 +264,10 @@
             }
 
             .radio-label {
-                font-size: 14px;
+                font-size: 13px;
                 color: #495057;
                 transition: all 0.2s ease;
+                font-weight: 500;
             }
 
             /* SVG Icon Styles */
@@ -331,22 +335,21 @@
                 }
                 
                 .radio-group {
-                    gap: 6px;
+                    gap: 4px;
                     flex-wrap: nowrap;
-                    overflow-x: auto;
-                    padding-bottom: 2px;
-                    -webkit-overflow-scrolling: touch;
                 }
                 
                 .radio-item {
-                    min-width: 56px;
-                    padding: 8px 6px;
+                    width: 100%;
+                    padding: 6px 10px;
                     flex-shrink: 0;
                     border-radius: 4px;
+                    min-height: 32px;
                 }
                 
                 .radio-label {
-                    font-size: 11px;
+                    font-size: 12px;
+                    font-weight: 500;
                 }
                 
                 #btnAdmin {
@@ -505,6 +508,11 @@
                             <input type="radio" name="orderType" value="취소">
                             <span class="radio-custom"></span>
                             <span class="radio-label">취소</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="orderType" value="배송조회">
+                            <span class="radio-custom"></span>
+                            <span class="radio-label">배송조회</span>
                         </label>
                     </div>
                 </div>
@@ -963,11 +971,48 @@
             const detailAddressField = document.querySelector('.field:nth-child(9)'); // 상세주소
             const memoField = document.querySelector('.field:nth-child(10)'); // 요청사항
             
+            // 상품/수량 필드 DOM
+            const productField = document.getElementById('product')?.closest('.field');
+            const quantityField = document.getElementById('quantity')?.closest('.field');
+
             orderTypeRadios.forEach(radio => {
                 radio.addEventListener('change', function() {
                     const memoLabel = document.querySelector('label[for="memo"]');
                     const memoInput = document.getElementById('memo');
+                    const customerNameInput = document.getElementById('customerName');
+                    const phoneInputEl = document.getElementById('phone');
+                    const productInput = document.getElementById('product');
+                    const quantityInput = document.getElementById('quantity');
+                    const submitBtn = document.getElementById('btnSubmit');
                     
+                    if (this.value === '배송조회') {
+                        // 배송조회: 주문번호만 입력, 나머지는 숨김
+                        existingOrderField.style.display = 'block';
+                        existingOrderInput.required = true;
+
+                        customerNameField.style.display = 'none';
+                        phoneField.style.display = 'none';
+                        zipcodeField.style.display = 'none';
+                        addressField.style.display = 'none';
+                        detailAddressField.style.display = 'none';
+                        memoField.style.display = 'none';
+                        if (productField) productField.style.display = 'none';
+                        if (quantityField) quantityField.style.display = 'none';
+
+                        // 필수 해제
+                        if (customerNameInput) customerNameInput.required = false;
+                        if (phoneInputEl) phoneInputEl.required = false;
+                        if (productInput) productInput.required = false;
+                        if (quantityInput) quantityInput.required = false;
+
+                        existingOrderInput.placeholder = '배송조회할 주문번호를 입력하세요';
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = '🔍 배송조회하기';
+                        }
+                        return;
+                    }
+
                     if (this.value !== '신규주문') {
                         // 교환/반품/취소 시
                         existingOrderField.style.display = 'block';
@@ -980,6 +1025,12 @@
                         addressField.style.display = 'none';
                         detailAddressField.style.display = 'none';
                         memoField.style.display = 'block'; // 요청사항은 표시 (교환/반품/취소 사유)
+                        if (productField) productField.style.display = 'block';
+                        if (quantityField) quantityField.style.display = 'block';
+                        
+                        // 필수 해제 (숨긴 필드들)
+                        if (customerNameInput) customerNameInput.required = false;
+                        if (phoneInputEl) phoneInputEl.required = false;
                         
                         // 라벨과 플레이스홀더 변경
                         memoLabel.textContent = '요청사항';
@@ -991,6 +1042,12 @@
                         document.getElementById('address').value = '';
                         document.getElementById('detailAddress').value = '';
                         document.getElementById('memo').value = '';
+
+                        // 제출 가능
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = '📦 주문 접수하기';
+                        }
                         
                     } else {
                         // 신규주문 시
@@ -1005,20 +1062,31 @@
                         addressField.style.display = 'block';
                         detailAddressField.style.display = 'block';
                         memoField.style.display = 'block';
+                        if (productField) productField.style.display = 'block';
+                        if (quantityField) quantityField.style.display = 'block';
+                        // 필수 복원
+                        if (customerNameInput) customerNameInput.required = true;
+                        if (phoneInputEl) phoneInputEl.required = true;
+                        if (productInput) productInput.required = true;
+                        if (quantityInput) quantityInput.required = true;
                         
                         // 라벨과 플레이스홀더 변경
                         memoLabel.textContent = '배송메세지';
                         memoInput.placeholder = '배송 관련 요청사항을 입력해주세요';
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = '📦 주문 접수하기';
+                        }
                     }
                 });
             });
 
-            // 기존 주문번호 입력 시 자동 정보 로드
+            // 기존 주문번호 입력 시 자동 정보 로드 (배송조회 제외)
             document.getElementById('existingOrderNumber').addEventListener('blur', async function() {
                 const orderNumber = this.value.trim();
                 const orderType = document.querySelector('input[name="orderType"]:checked').value;
                 
-                if (orderNumber && orderType !== '신규주문') {
+                if (orderNumber && orderType !== '신규주문' && orderType !== '배송조회') {
                     try {
                         const existingOrder = await findExistingOrder(orderNumber, '');
                         if (existingOrder) {
@@ -1081,6 +1149,49 @@
                     console.error("주문 저장 오류:", error);
                     showMessage("❌ 주문 저장 중 오류가 발생했습니다.", "error");
                 }
+            });
+
+            // 배송조회 처리
+            document.getElementById('btnSubmit').addEventListener('click', async function(e) {
+                const orderType = document.querySelector('input[name="orderType"]:checked').value;
+                
+                if (orderType === '배송조회') {
+                    e.preventDefault(); // 폼 제출 방지
+                    
+                    const orderNumber = document.getElementById('existingOrderNumber').value.trim();
+                    if (!orderNumber) {
+                        showMessage('❌ 주문번호를 입력해주세요.', 'error');
+                        return;
+                    }
+
+                    try {
+                        // 정확한 주문번호로 검색 (부분 일치가 아닌 완전 일치)
+                        const existingOrder = await findExistingOrder(orderNumber, '');
+                        if (existingOrder) {
+                            // 주문번호가 정확히 일치하는지 확인
+                            if (existingOrder.orderNumber !== orderNumber) {
+                                showMessage('❌ 주문번호가 정확히 일치하지 않습니다.', 'error');
+                                return;
+                            }
+                            
+                            const canShow = (existingOrder.status === '배송중' || existingOrder.status === '배송완료');
+                            if (canShow && (existingOrder.invoiceNumber || existingOrder.courier)) {
+                                showMessage(`📦 택배사: ${existingOrder.courier || '-'} / 송장번호: ${existingOrder.invoiceNumber || '-'}`, 'info');
+                            } else {
+                                showMessage('🚚 아직 배송정보가 없거나 송장 미등록 상태입니다.', 'warning');
+                            }
+                        } else {
+                            showMessage('❌ 해당 주문번호를 찾을 수 없습니다.', 'error');
+                        }
+                    } catch (error) {
+                        console.error('배송조회 오류:', error);
+                        showMessage('❌ 배송조회 중 오류가 발생했습니다.', 'error');
+                    }
+                    return;
+                }
+                
+                // 다른 주문 유형은 기존 로직으로 진행
+                showOrderConfirmModal();
             });
 
             document.getElementById('cancelOrder').addEventListener('click', function() {

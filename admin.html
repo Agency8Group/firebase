@@ -143,9 +143,8 @@
             }
 
             .main-content {
-                display: grid;
-                grid-template-columns: 1fr 300px;
-                gap: 20px;
+                display: block;
+                width: 100%;
             }
 
             .orders-section {
@@ -550,11 +549,17 @@
                     <button class="btn btn-secondary" onclick="showAllOrders()">
                         <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg> 전체 보기
                     </button>
-                    <button class="btn btn-success" onclick="exportToExcel()">
-                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> Excel 내보내기
+                    <button class="btn btn-success" onclick="exportToExcelAI()">
+                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> AI용 내보내기
+                    </button>
+                    <button class="btn btn-info" onclick="exportToExcelFull()">
+                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> 전체 내보내기
                     </button>
                     <button class="btn btn-primary" onclick="refreshOrders()">
                         <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> 새로고침
+                    </button>
+                    <button class="btn btn-outline" onclick="openInvoiceUploadModal()">
+                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> 송장 업로드
                     </button>
                 </div>
             </div>
@@ -567,6 +572,27 @@
                             <div class="auto-delete-warning">
             <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor" style="color: #dc3545;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
             <span>⚠️ 주문 데이터는 7일이 지나면 자동으로 삭제됩니다. <span id="deletionDateInfo" style="font-weight: bold; color: #e74c3c;"></span> 중요한 데이터는 Excel로 다운로드하여 백업하세요.</span>
+        </div>
+
+        <!-- 송장 업로드 모달 -->
+        <div id="invoiceUploadModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); align-items:center; justify-content:center; z-index:2000;">
+            <div style="background:#fff; padding:20px; border-radius:10px; width:420px; max-width:90%;">
+                <h3 style="margin-top:0;">송장번호 업로드</h3>
+                <p style="color:#666; font-size:13px;">엑셀 양식: 주문번호 / 고객명 / 휴대번호 / 택배사 / 송장번호</p>
+                <div style="display:flex; gap:8px; margin:10px 0 16px;">
+                    <button class="btn btn-secondary btn-sm" onclick="downloadInvoiceTemplate()">양식 내려받기</button>
+                    <label class="btn btn-primary btn-sm" style="cursor:pointer;">
+                        파일 선택
+                        <input id="invoiceFileInput" type="file" accept=".xlsx,.xls" style="display:none" onchange="previewInvoiceFile()" />
+                    </label>
+                    <button id="uploadBtn" class="btn btn-success btn-sm" onclick="startInvoiceImport()" disabled>업로드</button>
+                </div>
+                <div id="invoiceImportStatus" style="font-size:12px; color:#555;"></div>
+                <div id="invoicePreview" style="margin:10px 0; padding:10px; background:#f8f9fa; border-radius:4px; display:none;"></div>
+                <div style="text-align:right; margin-top:12px;">
+                    <button class="btn" onclick="closeInvoiceUploadModal()">닫기</button>
+                </div>
+            </div>
         </div>
                     <div class="filters">
                         <div class="search-fields">
@@ -670,6 +696,8 @@
                                 <th>상세주소</th>
                                 <th>배송메세지</th>
                                 <th>배송상태</th>
+                                <th>택배사</th>
+                                <th>송장번호</th>
                                 <th>작업</th>
                             </tr>
                         </thead>
@@ -696,14 +724,7 @@
                 </div>
             </div>
 
-            <div class="sidebar">
-                <div class="recent-orders">
-                    <h3><svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg> 최근 주문</h3>
-                    <div id="recentOrdersList">
-                        <!-- 최근 주문이 여기에 표시됩니다 -->
-                    </div>
-                </div>
-            </div>
+
         </div>
 
         <!-- Simple Footer -->
@@ -724,6 +745,7 @@
                 orderByChild,
                 get,
             } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
+            import * as XLSX from "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm";
 
             // Your web app's Firebase configuration
             const firebaseConfig = {
@@ -794,6 +816,217 @@
                 updateDeletionDateInfo();
             });
 
+            // 송장 업로드 모달 제어
+            window.openInvoiceUploadModal = function() {
+                document.getElementById('invoiceUploadModal').style.display = 'flex';
+                document.getElementById('invoiceImportStatus').textContent = '';
+                document.getElementById('invoicePreview').style.display = 'none';
+                document.getElementById('uploadBtn').disabled = true;
+                const fileInput = document.getElementById('invoiceFileInput');
+                if (fileInput) fileInput.value = '';
+            };
+            window.closeInvoiceUploadModal = function() {
+                document.getElementById('invoiceUploadModal').style.display = 'none';
+            };
+
+            // 송장 양식 다운로드
+            window.downloadInvoiceTemplate = function() {
+                const headers = [
+                    { 주문번호: 'ORD20240101000000', 고객명: '홍길동', 휴대번호: '010-1234-5678', 택배사: 'CJ대한통운', 송장번호: '123456789012' },
+                ];
+                const ws = XLSX.utils.json_to_sheet(headers);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, '송장업로드양식');
+                XLSX.writeFile(wb, '송장업로드_양식.xlsx');
+            };
+
+            // 파일 선택 후 미리보기
+            window.previewInvoiceFile = async function() {
+                const input = document.getElementById('invoiceFileInput');
+                const preview = document.getElementById('invoicePreview');
+                const uploadBtn = document.getElementById('uploadBtn');
+                const status = document.getElementById('invoiceImportStatus');
+                
+                if (!input || !input.files || input.files.length === 0) {
+                    preview.style.display = 'none';
+                    uploadBtn.disabled = true;
+                    return;
+                }
+
+                try {
+                    status.textContent = '파일 분석 중...';
+                    preview.style.display = 'none';
+                    
+                    const file = input.files[0];
+                    const data = await file.arrayBuffer();
+                    const workbook = XLSX.read(data);
+                    const sheetName = workbook.SheetNames[0];
+                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+
+                    if (rows.length === 0) {
+                        status.textContent = '파일에 데이터가 없습니다.';
+                        uploadBtn.disabled = true;
+                        return;
+                    }
+
+                    // 데이터 분석
+                    let validRows = 0, invalidRows = 0;
+                    const sampleData = [];
+                    
+                    for (let i = 0; i < Math.min(rows.length, 5); i++) {
+                        const row = rows[i];
+                        const orderNumber = String(row['주문번호'] || '').trim();
+                        const courier = String(row['택배사'] || '').trim();
+                        const invoice = String(row['송장번호'] || '').trim();
+                        
+                        if (orderNumber && courier && invoice) {
+                            validRows++;
+                            if (sampleData.length < 3) {
+                                sampleData.push({
+                                    orderNumber: orderNumber,
+                                    customerName: row['고객명'] || '',
+                                    courier: courier,
+                                    invoice: invoice
+                                });
+                            }
+                        } else {
+                            invalidRows++;
+                        }
+                    }
+
+                    // 미리보기 표시
+                    let previewHTML = `
+                        <div style="margin-bottom:10px;">
+                            <strong>📁 파일 분석 결과</strong>
+                        </div>
+                        <div style="font-size:12px; margin-bottom:8px;">
+                            📊 총 ${rows.length}행, 유효 ${validRows}행, 오류 ${invalidRows}행
+                        </div>
+                    `;
+
+                    if (sampleData.length > 0) {
+                        previewHTML += `
+                            <div style="font-size:12px; margin-bottom:8px;">
+                                <strong>📋 샘플 데이터 (처음 3건):</strong>
+                            </div>
+                            <div style="font-size:11px; color:#666;">
+                        `;
+                        
+                        sampleData.forEach((item, index) => {
+                            previewHTML += `
+                                ${index + 1}. ${item.orderNumber} | ${item.customerName} | ${item.courier} | ${item.invoice}<br>
+                            `;
+                        });
+                        
+                        previewHTML += `</div>`;
+                    }
+
+                    if (invalidRows > 0) {
+                        previewHTML += `
+                            <div style="font-size:12px; color:#dc3545; margin-top:8px;">
+                                ⚠️ ${invalidRows}행에 필수 데이터가 누락되어 있습니다.
+                            </div>
+                        `;
+                    }
+
+                    preview.innerHTML = previewHTML;
+                    preview.style.display = 'block';
+                    
+                    // 업로드 버튼 활성화
+                    uploadBtn.disabled = false;
+                    status.textContent = `파일 준비 완료: ${rows.length}행 (${validRows}건 유효)`;
+                    
+                } catch (error) {
+                    console.error('파일 분석 오류:', error);
+                    status.textContent = '파일 분석 중 오류가 발생했습니다.';
+                    preview.style.display = 'none';
+                    uploadBtn.disabled = true;
+                }
+            };
+
+            // 송장 업로드 처리
+            window.startInvoiceImport = async function() {
+                const input = document.getElementById('invoiceFileInput');
+                const status = document.getElementById('invoiceImportStatus');
+                if (!input || !input.files || input.files.length === 0) {
+                    alert('업로드할 파일을 선택하세요.');
+                    return;
+                }
+                try {
+                    status.textContent = '처리 중...';
+                    const file = input.files[0];
+                    const data = await file.arrayBuffer();
+                    const workbook = XLSX.read(data);
+                    const sheetName = workbook.SheetNames[0];
+                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+
+                    // rows: [{ 주문번호, 고객명, 휴대번호, 택배사, 송장번호 }]
+                    let updated = 0, notFound = 0, errors = 0, claimWarnings = 0;
+                    const claimWarningOrders = [];
+                    const allSnap = await get(ref(database, 'orders'));
+                    const all = allSnap.val() || {};
+
+                    const orderNumberToId = new Map();
+                    Object.entries(all).forEach(([id, o]) => {
+                        if (o && o.orderNumber) orderNumberToId.set(o.orderNumber, id);
+                    });
+
+                    for (const row of rows) {
+                        const orderNumber = String(row['주문번호'] || '').trim();
+                        const courier = String(row['택배사'] || '').trim();
+                        const invoice = String(row['송장번호'] || '').trim();
+                        if (!orderNumber || !courier || !invoice) { errors++; continue; }
+
+                        const orderId = orderNumberToId.get(orderNumber);
+                        if (!orderId) { notFound++; continue; }
+
+                        try {
+                            const order = all[orderId];
+                            if (!order) { notFound++; continue; }
+
+                            // 클레임 체크: 해당 주문에 대한 교환/반품/취소가 접수/배송중인지 확인
+                            const relatedClaims = Object.values(all).filter(o =>
+                                o && o.existingOrderNumber === order.orderNumber &&
+                                (o.orderType === '교환' || o.orderType === '반품' || o.orderType === '취소') &&
+                                (o.status === '접수' || o.status === '배송중')
+                            );
+
+                            // 송장 정보 업데이트
+                            await set(ref(database, `orders/${orderId}/courier`), courier);
+                            await set(ref(database, `orders/${orderId}/invoiceNumber`), invoice);
+                            
+                            // 클레임이 없으면 배송완료로 자동 전환
+                            if (relatedClaims.length === 0) {
+                                await set(ref(database, `orders/${orderId}/status`), '배송완료');
+                            } else {
+                                // 클레임이 있으면 경고 누적 (송장 정보는 저장되지만 상태는 그대로)
+                                claimWarnings++;
+                                claimWarningOrders.push(order.orderNumber);
+                                console.warn(`클레임 진행 중: ${order.orderNumber} (${relatedClaims.length}건)`);
+                            }
+                            
+                            updated++;
+                        } catch(e) { errors++; }
+                    }
+
+                    let message = `완료: ${updated}건 업데이트, ${notFound}건 미매칭, ${errors}건 오류`;
+                    
+                    // 클레임 경고가 있으면 알럿에 포함
+                    if (claimWarnings > 0) {
+                        message += `\n\n⚠️ 클레임 진행 중인 주문 ${claimWarnings}건은 송장만 등록되고 배송완료 처리되지 않았습니다.`;
+                        const sample = claimWarningOrders.slice(0, 5).join(', ');
+                        if (sample) message += `\n예: ${sample}${claimWarningOrders.length > 5 ? ' 외' : ''}`;
+                        message += `\n해당 주문의 교환/반품/취소 요청을 먼저 처리해주세요.`;
+                    }
+                    
+                    status.textContent = message.split('\n')[0]; // 첫 줄만 status에 표시
+                    alert(message);
+                } catch (e) {
+                    console.error(e);
+                    alert('업로드 처리 중 오류가 발생했습니다.');
+                }
+            };
+
             // 페이지네이션 함수들
             function updatePagination() {
                 const totalPages = Math.ceil(allFilteredData.length / itemsPerPage);
@@ -808,10 +1041,10 @@
                 
                 if (currentPageData.length === 0) {
                     ordersTableBody.innerHTML =
-                        '<tr><td colspan="12" style="text-align: center; padding: 20px;">표시할 주문이 없습니다.</td></tr>';
+                        '<tr><td colspan="14" style="text-align: center; padding: 20px;">표시할 주문이 없습니다.</td></tr>';
                     return;
                 }
-                
+
                 currentPageData.forEach(([id, order]) => {
                     const row = createOrderRow(id, order);
                     ordersTableBody.appendChild(row);
@@ -933,6 +1166,8 @@
                     order.status
                 }</span>
                 </td>
+                <td style="max-width: 120px; word-break: break-all;">${order.courier || ''}</td>
+                <td style="max-width: 140px; word-break: break-all;">${order.invoiceNumber || ''}</td>
                 <td>
                     <select class="status-select" onchange="updateOrderStatus('${id}', this.value)">
                         <option value="접수" ${
@@ -1025,30 +1260,8 @@
             }
 
             // 최근 주문 업데이트
-            function updateRecentOrders(data) {
-                if (!data) {
-                    recentOrdersList.innerHTML =
-                        '<p style="color: #666; font-size: 12px;">최근 주문이 없습니다.</p>';
-                    return;
-                }
-
-                const entries = Object.entries(data);
-                const recentOrders = entries.slice(-5).reverse(); // 최근 5개
-
-                recentOrdersList.innerHTML = "";
-                recentOrders.forEach(([id, order]) => {
-                    const orderDate = new Date(order.createdAt);
-                    const item = document.createElement("div");
-                    item.className = "recent-order-item";
-                    item.innerHTML = `
-                    <h4>${order.customerName} - ${order.product}</h4>
-                    <p>${orderDate.toLocaleString("ko-KR")} | ${
-                        order.status
-                    }</p>
-                `;
-                    recentOrdersList.appendChild(item);
-                });
-            }
+            // 최근주문 섹션 제거로 더미 함수 유지
+            function updateRecentOrders(data) { /* no-op */ }
 
             // 주문 필터링
             function filterOrdersData(entries) {
@@ -1234,13 +1447,13 @@
                 const ordersRef = ref(database, "orders");
                 const ordersQuery = query(ordersRef, orderByChild("createdAt"));
                 onValue(ordersQuery, (snapshot) => {
-                    const data = snapshot.val();
-                    if (!data) {
+                        const data = snapshot.val();
+                        if (!data) {
                         updateOrdersTable({});
-                        return;
-                    }
-                    
-                    const entries = Object.entries(data);
+                            return;
+                        }
+
+                        const entries = Object.entries(data);
                     console.log('전체 주문 데이터:', entries.length, '건');
                     
                     const filteredEntries = entries.filter(([id, order]) => {
@@ -1511,10 +1724,10 @@
                 }
             }
 
-            // Excel 내보내기 (필터링된 전체 데이터)
-            window.exportToExcel = function () {
+            // AI 제품 매칭용 Excel 내보내기 (배송상태까지)
+            window.exportToExcelAI = function () {
                 // 로딩 표시
-                const exportBtn = document.querySelector('button[onclick="exportToExcel()"]');
+                const exportBtn = document.querySelector('button[onclick="exportToExcelAI()"]');
                 const originalText = exportBtn.innerHTML;
                 exportBtn.disabled = true;
                 exportBtn.innerHTML = '<svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 처리중...';
@@ -1526,7 +1739,7 @@
                         return;
                     }
                     
-                    // 필터링된 전체 데이터 수집
+                    // 필터링된 전체 데이터 수집 (AI용 - 배송상태까지만)
                     const filteredData = [];
                     let processedCount = 0;
                     const totalCount = allFilteredData.length;
@@ -1540,7 +1753,7 @@
                             exportBtn.innerHTML = `<svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ${progress}%`;
                         }
                         
-                        // 주문 데이터를 Excel 형식으로 변환
+                        // 주문 데이터를 Excel 형식으로 변환 (AI용)
                         filteredData.push({
                             주문번호: order.orderNumber || '',
                             주문시간: order.createdAt ? new Date(order.createdAt).toLocaleString("ko-KR") : '',
@@ -1570,17 +1783,96 @@
                     // Excel 파일 생성
                     const ws = XLSX.utils.json_to_sheet(filteredData);
                     const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, "주문목록");
+                    XLSX.utils.book_append_sheet(wb, ws, "주문목록_AI용");
 
-                    const fileName = `주문목록_${new Date().toISOString().split("T")[0]}_${filteredData.length}건.xlsx`;
+                    const fileName = `주문목록_AI용_${new Date().toISOString().split("T")[0]}_${filteredData.length}건.xlsx`;
                     XLSX.writeFile(wb, fileName);
                     
                     // 완료 메시지
-                    alert(`Excel 파일이 생성되었습니다.\n총 ${filteredData.length.toLocaleString()}건의 데이터가 포함되었습니다.`);
+                    alert(`AI용 Excel 파일이 생성되었습니다.\n총 ${filteredData.length.toLocaleString()}건의 데이터가 포함되었습니다.`);
                     
                 } catch (error) {
-                    console.error("Excel 내보내기 오류:", error);
-                    alert("Excel 내보내기 중 오류가 발생했습니다.");
+                    console.error("AI용 Excel 내보내기 오류:", error);
+                    alert("AI용 Excel 내보내기 중 오류가 발생했습니다.");
+                } finally {
+                    // 버튼 복원
+                    exportBtn.disabled = false;
+                    exportBtn.innerHTML = originalText;
+                }
+            };
+
+            // 모든 정보 Excel 내보내기 (택배사/송장번호/작업까지 모두)
+            window.exportToExcelFull = function () {
+                // 로딩 표시
+                const exportBtn = document.querySelector('button[onclick="exportToExcelFull()"]');
+                const originalText = exportBtn.innerHTML;
+                exportBtn.disabled = true;
+                exportBtn.innerHTML = '<svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 처리중...';
+                
+                try {
+                    // 필터링된 전체 데이터 사용 (페이지네이션 무관)
+                    if (!allFilteredData || allFilteredData.length === 0) {
+                        alert("내보낼 주문 데이터가 없습니다.");
+                        return;
+                    }
+                    
+                    // 필터링된 전체 데이터 수집 (전체 정보)
+                    const filteredData = [];
+                    let processedCount = 0;
+                    const totalCount = allFilteredData.length;
+                    
+                    allFilteredData.forEach(([id, order]) => {
+                        processedCount++;
+                        
+                        // 1000건마다 진행률 업데이트
+                        if (processedCount % 1000 === 0) {
+                            const progress = Math.round((processedCount / totalCount) * 100);
+                            exportBtn.innerHTML = `<svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ${progress}%`;
+                        }
+                        
+                        // 주문 데이터를 Excel 형식으로 변환 (전체 정보)
+                        filteredData.push({
+                            주문번호: order.orderNumber || '',
+                            주문시간: order.createdAt ? new Date(order.createdAt).toLocaleString("ko-KR") : '',
+                            입금자명: order.customerName || '',
+                            연락처: order.phone || '',
+                            주문유형: order.orderType || '신규주문',
+                            기존주문번호: order.existingOrderNumber || '-',
+                            구매제품: `${order.product || ''} (${order.quantity || 0}개)`,
+                            주소: order.address || '',
+                            상세주소: order.detailAddress || '',
+                            배송메세지: order.memo || '',
+                            배송상태: order.status || '',
+                            택배사: order.courier || '-',
+                            송장번호: order.invoiceNumber || '-'
+                        });
+                    });
+                    
+                    // 데이터 개수 확인
+                    if (filteredData.length > 10000) {
+                        const confirm = window.confirm(
+                            `총 ${filteredData.length.toLocaleString()}건의 데이터를 내보냅니다.\n` +
+                            `처리 시간이 오래 걸릴 수 있습니다.\n계속하시겠습니까?`
+                        );
+                        if (!confirm) {
+                            return;
+                        }
+                    }
+
+                    // Excel 파일 생성
+                    const ws = XLSX.utils.json_to_sheet(filteredData);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "주문목록_전체");
+
+                    const fileName = `주문목록_전체_${new Date().toISOString().split("T")[0]}_${filteredData.length}건.xlsx`;
+                    XLSX.writeFile(wb, fileName);
+                    
+                    // 완료 메시지
+                    alert(`전체 Excel 파일이 생성되었습니다.\n총 ${filteredData.length.toLocaleString()}건의 데이터가 포함되었습니다.`);
+                    
+                } catch (error) {
+                    console.error("전체 Excel 내보내기 오류:", error);
+                    alert("전체 Excel 내보내기 중 오류가 발생했습니다.");
                 } finally {
                     // 버튼 복원
                     exportBtn.disabled = false;
