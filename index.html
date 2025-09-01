@@ -741,6 +741,21 @@
                     />
                 </div>
 
+                <!-- 환불 계좌정보 입력칸 (반품/취소 시에만 표시) -->
+                <div
+                    class="field"
+                    id="refundAccountField"
+                    style="display: none"
+                >
+                    <label for="refundAccount">환불받을 계좌정보 *</label>
+                    <input
+                        type="text"
+                        id="refundAccount"
+                        name="refundAccount"
+                        placeholder="은행명 - 계좌번호 - 예금주명 (예: 신한은행 - 110-123456789 - 홍길동)"
+                    />
+                </div>
+
                 <button type="submit" id="btnSubmit">
                     <svg
                         class="inline-icon"
@@ -923,6 +938,18 @@
                             showMessage(`❌ ${statusCheck.reason}`, "error");
                             return;
                         }
+
+                        // 반품/취소 시 환불 계좌정보 필수 입력 확인
+                        if (
+                            (orderType === "반품" || orderType === "취소") &&
+                            !formData.get("refundAccount")
+                        ) {
+                            showMessage(
+                                "❌ 환불받을 계좌정보를 입력해주세요.",
+                                "error"
+                            );
+                            return;
+                        }
                     }
 
                     // 주문 내역 생성
@@ -937,6 +964,7 @@
                         address: formData.get("address"),
                         detailAddress: formData.get("detailAddress"),
                         memo: formData.get("memo"),
+                        refundAccount: formData.get("refundAccount") || null,
                         status: getStatusByOrderType(orderType),
                         createdAt: Date.now(),
                         orderNumber: generateOrderNumber(),
@@ -1056,6 +1084,16 @@
                     `
                             : ""
                     }
+                    ${
+                        orderData.refundAccount
+                            ? `
+                    <div class="order-summary-item">
+                        <span>환불 계좌정보:</span>
+                        <span>${orderData.refundAccount}</span>
+                    </div>
+                    `
+                            : ""
+                    }
                     <div class="order-summary-item">
                         <span>입금계좌:</span>
                         <span>0000-0000-0000-0000 (0000셀러)</span>
@@ -1120,6 +1158,9 @@
                 }
                 if (orderData.memo) {
                     items.push(`메모: ${orderData.memo}`);
+                }
+                if (orderData.refundAccount) {
+                    items.push(`환불 계좌정보: ${orderData.refundAccount}`);
                 }
 
                 items.forEach((item) => {
@@ -1238,6 +1279,8 @@
                 ".field:nth-child(9)"
             ); // 상세주소
             const memoField = document.querySelector(".field:nth-child(10)"); // 요청사항
+            const refundAccountField =
+                document.getElementById("refundAccountField"); // 환불 계좌정보
 
             // 상품/수량 필드 DOM
             const productField = document
@@ -1274,6 +1317,7 @@
                         addressField.style.display = "none";
                         detailAddressField.style.display = "none";
                         memoField.style.display = "none";
+                        refundAccountField.style.display = "none";
                         if (productField) productField.style.display = "none";
                         if (quantityField) quantityField.style.display = "none";
 
@@ -1326,6 +1370,20 @@
                         addressField.style.display = "none";
                         detailAddressField.style.display = "none";
                         memoField.style.display = "block"; // 요청사항은 표시 (교환/반품/취소 사유)
+
+                        // 반품/취소 시에만 환불 계좌정보 표시
+                        if (this.value === "반품" || this.value === "취소") {
+                            refundAccountField.style.display = "block";
+                            document.getElementById(
+                                "refundAccount"
+                            ).required = true;
+                        } else {
+                            refundAccountField.style.display = "none";
+                            document.getElementById(
+                                "refundAccount"
+                            ).required = false;
+                        }
+
                         if (productField) productField.style.display = "block";
                         if (quantityField)
                             quantityField.style.display = "block";
@@ -1346,6 +1404,7 @@
                         document.getElementById("address").value = "";
                         document.getElementById("detailAddress").value = "";
                         document.getElementById("memo").value = "";
+                        document.getElementById("refundAccount").value = "";
 
                         // 제출 가능
                         if (submitBtn) {
@@ -1368,6 +1427,13 @@
                         addressField.style.display = "block";
                         detailAddressField.style.display = "block";
                         memoField.style.display = "block";
+
+                        // 환불 계좌정보 필드 숨김
+                        refundAccountField.style.display = "none";
+                        document.getElementById(
+                            "refundAccount"
+                        ).required = false;
+
                         if (productField) productField.style.display = "block";
                         if (quantityField)
                             quantityField.style.display = "block";

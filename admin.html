@@ -1735,6 +1735,10 @@
                 }</td>
                 <td style="max-width: 150px; word-break: break-all;">${
                     order.memo || ""
+                }${
+                    order.refundAccount
+                        ? `<br><br><strong>환불 계좌정보:</strong><br>${order.refundAccount}`
+                        : ""
                 }</td>
                 <td>
                     <span class="status-badge status-${order.status}">${
@@ -2646,7 +2650,11 @@
                             }개)`,
                             주소: order.address || "",
                             상세주소: order.detailAddress || "",
-                            배송메세지: order.memo || "",
+                            배송메세지: `${order.memo || ""}${
+                                order.refundAccount
+                                    ? `\n\n환불 계좌정보:\n${order.refundAccount}`
+                                    : ""
+                            }`,
                             배송상태: order.status || "",
                         });
                     });
@@ -2737,7 +2745,11 @@
                             }개)`,
                             주소: order.address || "",
                             상세주소: order.detailAddress || "",
-                            배송메세지: order.memo || "",
+                            배송메세지: `${order.memo || ""}${
+                                order.refundAccount
+                                    ? `\n\n환불 계좌정보:\n${order.refundAccount}`
+                                    : ""
+                            }`,
                             배송상태: order.status || "",
                             택배사: order.courier || "-",
                             송장번호: order.invoiceNumber || "-",
