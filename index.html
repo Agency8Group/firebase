@@ -93,6 +93,19 @@
                 opacity: 1;
             }
 
+            select option[disabled] {
+                color: #999;
+                font-style: italic;
+            }
+
+            select:invalid {
+                color: #999;
+            }
+
+            select:valid {
+                color: #333;
+            }
+
             #product::placeholder {
                 font-size: 12px;
                 line-height: 1.2;
@@ -116,18 +129,22 @@
                 border-radius: 6px;
                 cursor: pointer;
                 font-size: 16px;
-                min-height: 44px;
+                min-height: 48px;
                 touch-action: manipulation;
                 -webkit-tap-highlight-color: transparent;
                 transition: background-color 0.2s ease;
+                -webkit-user-select: none;
+                user-select: none;
             }
 
             button:hover {
                 background: #0056b3;
+                transform: translateY(-1px);
             }
 
             button:active {
                 background: #004085;
+                transform: translateY(0);
             }
 
             button[disabled] {
@@ -182,36 +199,280 @@
                 flex: 1;
             }
 
-            .status-indicator {
-                text-align: center;
-                padding: 8px;
-                border-radius: 4px;
-                margin-bottom: 16px;
+            /* Radio Button Styles */
+            .radio-group {
+                display: flex;
+                gap: 16px;
+                flex-wrap: wrap;
+            }
+
+            .radio-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+                padding: 8px 12px;
+                border: 1px solid #e9ecef;
+                border-radius: 6px;
+                background: white;
+                transition: all 0.2s ease;
+                min-width: 80px;
+                justify-content: center;
+            }
+
+            .radio-item:hover {
+                border-color: #007bff;
+                background: #f8f9ff;
+            }
+
+            .radio-item input[type="radio"] {
+                display: none;
+            }
+
+            .radio-custom {
+                width: 16px;
+                height: 16px;
+                border: 2px solid #ddd;
+                border-radius: 50%;
+                position: relative;
+                transition: all 0.2s ease;
+            }
+
+            .radio-item input[type="radio"]:checked + .radio-custom {
+                border-color: #007bff;
+                background: #007bff;
+            }
+
+            .radio-item input[type="radio"]:checked + .radio-custom::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 6px;
+                height: 6px;
+                background: white;
+                border-radius: 50%;
+            }
+
+            .radio-item input[type="radio"]:checked ~ .radio-label {
+                color: #007bff;
+                font-weight: 600;
+            }
+
+            .radio-label {
                 font-size: 14px;
+                color: #495057;
+                transition: all 0.2s ease;
             }
 
-            .status.connected {
-                background-color: #d4edda;
-                color: #155724;
-                border: 1px solid #c3e6cb;
+            /* SVG Icon Styles */
+            .inline-icon {
+                width: 18px;
+                height: 18px;
+                vertical-align: middle;
+                margin-right: 6px;
             }
 
-            .status.disconnected {
-                background-color: #f8d7da;
-                color: #721c24;
-                border: 1px solid #f5c6cb;
+            .status-indicator {
+                display: inline-block;
+                width: 16px;
+                height: 16px;
+                border-radius: 50%;
+                margin-left: 12px;
+                vertical-align: middle;
+                border: 2px solid #ddd;
+            }
+            
+            .status-indicator.connected {
+                background-color: #28a745;
+            }
+            
+            .status-indicator.disconnected {
+                background-color: #dc3545;
             }
 
             @media (max-width: 768px) {
                 body {
-                    margin: 12px;
+                    margin: 8px;
+                    font-size: 14px;
                 }
-
+                
                 .wrap {
                     padding: 16px;
+                    border-radius: 8px;
                 }
-
+                
+                h1 {
+                    font-size: 18px;
+                    margin-bottom: 20px;
+                }
+                
+                .field {
+                    margin: 12px 0;
+                }
+                
+                label {
+                    font-size: 14px;
+                    margin-bottom: 4px;
+                }
+                
+                input[type="text"],
+                input[type="tel"],
+                select {
+                    font-size: 16px;
+                    padding: 10px;
+                    min-height: 44px;
+                }
+                
                 .addr-row {
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                
+                .radio-group {
+                    gap: 6px;
+                    flex-wrap: nowrap;
+                    overflow-x: auto;
+                    padding-bottom: 2px;
+                    -webkit-overflow-scrolling: touch;
+                }
+                
+                .radio-item {
+                    min-width: 56px;
+                    padding: 8px 6px;
+                    flex-shrink: 0;
+                    border-radius: 4px;
+                }
+                
+                .radio-label {
+                    font-size: 11px;
+                }
+                
+                #btnAdmin {
+                    display: none;
+                }
+                
+                .simple-footer {
+                    margin-top: 24px;
+                    padding: 16px 0;
+                }
+            }
+
+            /* Simple Footer */
+            .simple-footer {
+                margin-top: 40px;
+                padding: 20px 0;
+                text-align: center;
+                border-top: 1px solid #e9ecef;
+            }
+
+            .simple-footer a {
+                color: #6c757d;
+                text-decoration: none;
+                font-size: 12px;
+                transition: color 0.2s ease;
+            }
+
+            .simple-footer a:hover {
+                color: #495057;
+            }
+
+            /* 모달 스타일 */
+            .modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+            }
+
+            .modal-content {
+                background: white;
+                padding: 24px;
+                border-radius: 12px;
+                max-width: 90%;
+                width: 400px;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+
+            .modal-content h3 {
+                margin: 0 0 16px 0;
+                color: #212529;
+                font-size: 18px;
+                text-align: center;
+            }
+
+            .order-summary {
+                background: #f8f9fa;
+                padding: 16px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            .order-summary-item {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 8px;
+            }
+
+            .order-summary-item:last-child {
+                margin-bottom: 0;
+            }
+
+            .modal-buttons {
+                display: flex;
+                gap: 12px;
+                justify-content: center;
+            }
+
+            .btn-confirm {
+                background: #28a745;
+                color: white;
+                border: none;
+                padding: 12px 20px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+                min-height: 44px;
+                flex: 1;
+            }
+
+            .btn-confirm:hover {
+                background: #1e7e34;
+            }
+
+            .btn-cancel {
+                background: #6c757d;
+                color: white;
+                border: none;
+                padding: 12px 20px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+                min-height: 44px;
+                flex: 1;
+            }
+
+            .btn-cancel:hover {
+                background: #545b62;
+            }
+
+            @media (max-width: 768px) {
+                .modal-content {
+                    padding: 20px;
+                    margin: 16px;
+                }
+                
+                .modal-buttons {
                     flex-direction: column;
                 }
             }
@@ -219,13 +480,45 @@
     </head>
     <body>
         <div class="wrap">
-            <h1>📦 0000셀러 주문 수집</h1>
+            <h1><svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h4c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg> 0000셀러 주문 수집<span id="status" class="status-indicator disconnected"></span></h1>
 
-            <div id="status" class="status-indicator disconnected">
-                🔴 Firebase 연결 중...
-            </div>
+                        <form id="orderForm">
+                <div class="field">
+                    <label>주문 유형 *</label>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="orderType" value="신규주문" checked>
+                            <span class="radio-custom"></span>
+                            <span class="radio-label">신규주문</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="orderType" value="교환">
+                            <span class="radio-custom"></span>
+                            <span class="radio-label">교환</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="orderType" value="반품">
+                            <span class="radio-custom"></span>
+                            <span class="radio-label">반품</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="orderType" value="취소">
+                            <span class="radio-custom"></span>
+                            <span class="radio-label">취소</span>
+                        </label>
+                    </div>
+                </div>
 
-            <form id="orderForm">
+                <div class="field" id="existingOrderField" style="display: none;">
+                    <label for="existingOrderNumber">기존 주문번호 *</label>
+                    <input
+                        type="text"
+                        id="existingOrderNumber"
+                        name="existingOrderNumber"
+                        placeholder="교환/반품/취소할 주문번호를 입력해주세요"
+                    />
+                </div>
+
                 <div class="field">
                     <label for="customerName">고객명 *</label>
                     <input
@@ -254,9 +547,27 @@
                         type="text"
                         id="product"
                         name="product"
-                        placeholder="주문하실 상품명을 입력해주세요"
+                        placeholder="상품명/사이즈/색상 순
+ 브랜드 티셔츠 s사이즈 블랙"
                         required
                     />
+                </div>
+
+                <div class="field">
+                    <label for="quantity">수량 *</label>
+                    <select id="quantity" name="quantity" required>
+                        <option value="" disabled selected>수량을 선택하세요</option>
+                        <option value="1">1개</option>
+                        <option value="2">2개</option>
+                        <option value="3">3개</option>
+                        <option value="4">4개</option>
+                        <option value="5">5개</option>
+                        <option value="6">6개</option>
+                        <option value="7">7개</option>
+                        <option value="8">8개</option>
+                        <option value="9">9개</option>
+                        <option value="10">10개</option>
+                    </select>
                 </div>
 
                 <div class="field">
@@ -296,26 +607,57 @@
                 </div>
 
                 <div class="field">
-                    <label for="memo">메모</label>
+                    <label for="memo">배송메세지</label>
                     <input
                         type="text"
                         id="memo"
                         name="memo"
-                        placeholder="추가 요청사항이 있으시면 입력해주세요"
+                        placeholder="배송 관련 요청사항을 입력해주세요"
                     />
                 </div>
 
-                <button type="submit" id="btnSubmit">📦 주문 접수하기</button>
+                <button type="submit" id="btnSubmit"><svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> 주문 접수하기</button>
             </form>
 
             <div id="message" class="msg" style="display: none"></div>
 
+        <!-- 주문 완료 확인 모달 -->
+        <div id="orderConfirmModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h3>📋 주문 내역 확인</h3>
+                <div id="orderSummary" class="order-summary"></div>
+                <div class="modal-buttons">
+                    <button type="button" id="confirmOrder" class="btn-confirm">네, 맞습니다</button>
+                    <button type="button" id="cancelOrder" class="btn-cancel">수정하기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 주문내역 저장 확인 모달 -->
+        <div id="saveOrderModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h3>💾 주문내역 저장</h3>
+                <p>주문내역을 앨범에 저장하시겠습니까?</p>
+                <div class="modal-buttons">
+                    <button type="button" id="saveToAlbum" class="btn-confirm">저장하기</button>
+                    <button type="button" id="skipSave" class="btn-cancel">건너뛰기</button>
+                </div>
+            </div>
+        </div>
+
             <div style="text-align: center; margin-top: 20px">
                 <button type="button" id="btnAdmin" class="icon-btn">
-                    🔧 관리자
+                    <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 관리자
                 </button>
             </div>
         </div>
+
+        <!-- Simple Footer -->
+        <footer class="simple-footer">
+            <a href="https://cx-tech-builder.netlify.app/" target="_blank">
+                Powered by CX Tech Builder
+            </a>
+        </footer>
 
         <!-- Firebase SDK -->
         <script type="module">
@@ -326,19 +668,19 @@
                 ref,
                 push,
                 onValue,
+                get,
             } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
             // Your web app's Firebase configuration
             const firebaseConfig = {
-                apiKey: "AIzaSyA3og6X2bk2Tb2cvs9wiTm_HqdqdlIuTt8",
-                authDomain: "main-project-5d624.firebaseapp.com",
-                projectId: "main-project-5d624",
-                storageBucket: "main-project-5d624.firebasestorage.app",
-                messagingSenderId: "232188977313",
-                appId: "1:232188977313:web:247a5557753a2ead6750e0",
-                measurementId: "G-BWVCXZMY53",
-                databaseURL:
-                    "https://main-project-5d624-default-rtdb.asia-southeast1.firebasedatabase.app",
+                apiKey: "AIzaSyA4Z1B42fmBIJznBED11XIIiVVKN5OSQ1E",
+                authDomain: "seller1-b8a4c.firebaseapp.com",
+                projectId: "seller1-b8a4c",
+                storageBucket: "seller1-b8a4c.firebasestorage.app",
+                messagingSenderId: "740000823974",
+                appId: "1:740000823974:web:ac62ca392ffb34e96e9267",
+                measurementId: "G-Q8ZNT6PDB9",
+                databaseURL: "https://seller1-b8a4c-default-rtdb.asia-southeast1.firebasedatabase.app"
             };
 
             // Initialize Firebase
@@ -355,11 +697,8 @@
             const connectedRef = ref(database, ".info/connected");
             onValue(connectedRef, (snap) => {
                 if (snap.val() === true) {
-                    statusDiv.textContent =
-                        "🟢 Firebase 연결됨 - 실시간 주문 접수 준비 완료!";
                     statusDiv.className = "status-indicator connected";
                 } else {
-                    statusDiv.textContent = "🔴 Firebase 연결 끊김";
                     statusDiv.className = "status-indicator disconnected";
                 }
             });
@@ -374,30 +713,41 @@
 
                 try {
                     const formData = new FormData(orderForm);
+                    const orderType = formData.get("orderType");
+                    const existingOrderNumber = formData.get("existingOrderNumber");
+                    const phone = formData.get("phone");
+
+                    // 교환/반품/취소인 경우 기존 주문 매칭 검증
+                    if (orderType !== "신규주문") {
+                        const existingOrder = await findExistingOrder(existingOrderNumber, phone);
+                        if (!existingOrder) {
+                            showMessage(
+                                "❌ 기존 주문을 찾을 수 없습니다. 주문번호와 휴대폰번호를 확인해주세요.",
+                                "error"
+                            );
+                            return;
+                        }
+                    }
+
+                    // 주문 내역 생성
                     const orderData = {
                         customerName: formData.get("customerName"),
                         phone: formData.get("phone"),
                         product: formData.get("product"),
-                        quantity: 1, // 기본값 1개로 설정
+                        quantity: parseInt(formData.get("quantity")),
+                        orderType: orderType,
+                        existingOrderNumber: existingOrderNumber || null,
                         zipcode: formData.get("zipcode"),
                         address: formData.get("address"),
                         detailAddress: formData.get("detailAddress"),
                         memo: formData.get("memo"),
-                        status: "접수",
+                        status: getStatusByOrderType(orderType),
                         createdAt: Date.now(),
                         orderNumber: generateOrderNumber(),
                     };
 
-                    // Firebase에 주문 저장
-                    const ordersRef = ref(database, "orders");
-                    await push(ordersRef, orderData);
-
-                    // 성공 메시지
-                    showMessage(
-                        "✅ 주문이 성공적으로 접수되었습니다!",
-                        "success"
-                    );
-                    orderForm.reset();
+                    // 주문 내역 확인 모달 표시
+                    showOrderConfirmModal(orderData);
                 } catch (error) {
                     console.error("주문 접수 오류:", error);
                     showMessage(
@@ -410,6 +760,43 @@
                 }
             });
 
+            // 기존 주문 검색
+            async function findExistingOrder(orderNumber, phone = '') {
+                try {
+                    const ordersRef = ref(database, "orders");
+                    const snapshot = await get(ordersRef);
+                    const data = snapshot.val();
+                    
+                    if (!data) return null;
+                    
+                    const orders = Object.entries(data);
+                    let existingOrder;
+                    
+                    if (phone) {
+                        // 휴대폰번호와 주문번호 모두로 검색 (주문 접수 시)
+                        existingOrder = orders.find(([id, order]) => 
+                            order.orderNumber === orderNumber && order.phone === phone
+                        );
+                    } else {
+                        // 주문번호만으로 검색 (자동 정보 로드 시)
+                        existingOrder = orders.find(([id, order]) => 
+                            order.orderNumber === orderNumber
+                        );
+                    }
+                    
+                    return existingOrder ? existingOrder[1] : null;
+                } catch (error) {
+                    console.error("기존 주문 검색 오류:", error);
+                    return null;
+                }
+            }
+
+            // 주문 유형에 따른 상태 설정
+            function getStatusByOrderType(orderType) {
+                // 모든 접수는 "접수"로 통일 (주문유형으로 구분)
+                return "접수";
+            }
+
             // 주문번호 생성
             function generateOrderNumber() {
                 const now = new Date();
@@ -421,6 +808,112 @@
                 const seconds = String(now.getSeconds()).padStart(2, "0");
 
                 return `ORD${year}${month}${day}${hours}${minutes}${seconds}`;
+            }
+
+            // 주문 내역 확인 모달 표시
+            function showOrderConfirmModal(orderData) {
+                const modal = document.getElementById('orderConfirmModal');
+                const summary = document.getElementById('orderSummary');
+                
+                summary.innerHTML = `
+                    <div class="order-summary-item">
+                        <span>고객명:</span>
+                        <span>${orderData.customerName}</span>
+                    </div>
+                    <div class="order-summary-item">
+                        <span>연락처:</span>
+                        <span>${orderData.phone}</span>
+                    </div>
+                    <div class="order-summary-item">
+                        <span>상품명:</span>
+                        <span>${orderData.product}</span>
+                    </div>
+                    <div class="order-summary-item">
+                        <span>수량:</span>
+                        <span>${orderData.quantity}개</span>
+                    </div>
+                    <div class="order-summary-item">
+                        <span>주문 유형:</span>
+                        <span>${orderData.orderType}</span>
+                    </div>
+                    ${orderData.address ? `
+                    <div class="order-summary-item">
+                        <span>주소:</span>
+                        <span>${orderData.address} ${orderData.detailAddress || ''}</span>
+                    </div>
+                    ` : ''}
+                    ${orderData.memo ? `
+                    <div class="order-summary-item">
+                        <span>메모:</span>
+                        <span>${orderData.memo}</span>
+                    </div>
+                    ` : ''}
+                    <div class="order-summary-item">
+                        <span>입금계좌:</span>
+                        <span>0000-0000-0000-0000 (0000셀러)</span>
+                    </div>
+                `;
+                
+                modal.style.display = 'flex';
+                
+                // 모달에 주문 데이터 저장
+                modal.orderData = orderData;
+            }
+
+            // 주문내역 저장 모달 표시
+            function showSaveOrderModal(orderData) {
+                const modal = document.getElementById('saveOrderModal');
+                modal.style.display = 'flex';
+                modal.orderData = orderData;
+            }
+
+            // 주문내역을 이미지로 생성
+            function generateOrderImage(orderData) {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                canvas.width = 400;
+                canvas.height = 600;
+                
+                // 배경
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, 400, 600);
+                
+                // 제목
+                ctx.fillStyle = '#333333';
+                ctx.font = 'bold 24px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('주문 내역', 200, 40);
+                
+                // 주문 정보
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'left';
+                let y = 80;
+                
+                const items = [
+                    `주문번호: ${orderData.orderNumber}`,
+                    `고객명: ${orderData.customerName}`,
+                    `연락처: ${orderData.phone}`,
+                    `상품명: ${orderData.product}`,
+                    `수량: ${orderData.quantity}개`,
+                    `주문 유형: ${orderData.orderType}`,
+                    `주문 시간: ${new Date(orderData.createdAt).toLocaleString('ko-KR')}`,
+                    `입금계좌: 0000-0000-0000-0000 (0000셀러)`
+                ];
+                
+                if (orderData.address) {
+                    items.push(`주소: ${orderData.address} ${orderData.detailAddress || ''}`);
+                }
+                if (orderData.memo) {
+                    items.push(`메모: ${orderData.memo}`);
+                }
+                
+                items.forEach(item => {
+                    ctx.fillText(item, 20, y);
+                    y += 30;
+                });
+                
+                return canvas.toDataURL('image/png');
             }
 
             // 메시지 표시
@@ -453,6 +946,102 @@
                 }
             });
 
+            // 주문 유형 변경 시 필드 표시/숨김 (성능 최적화)
+            const orderTypeRadios = document.querySelectorAll('input[name="orderType"]');
+            const existingOrderField = document.getElementById('existingOrderField');
+            const existingOrderInput = document.getElementById('existingOrderNumber');
+            
+            // 교환/반품/취소 시 숨길 필드들
+            const customerNameField = document.querySelector('.field:nth-child(3)'); // 고객명
+            const phoneField = document.querySelector('.field:nth-child(4)'); // 연락처
+            const zipcodeField = document.querySelector('.field:nth-child(7)'); // 우편번호
+            const addressField = document.querySelector('.field:nth-child(8)'); // 주소
+            const detailAddressField = document.querySelector('.field:nth-child(9)'); // 상세주소
+            const memoField = document.querySelector('.field:nth-child(10)'); // 요청사항
+            
+            orderTypeRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const memoLabel = document.querySelector('label[for="memo"]');
+                    const memoInput = document.getElementById('memo');
+                    
+                    if (this.value !== '신규주문') {
+                        // 교환/반품/취소 시
+                        existingOrderField.style.display = 'block';
+                        existingOrderInput.required = true;
+                        
+                        // 기존 주문번호, 상품명, 수량만 표시
+                        customerNameField.style.display = 'none';
+                        phoneField.style.display = 'none';
+                        zipcodeField.style.display = 'none';
+                        addressField.style.display = 'none';
+                        detailAddressField.style.display = 'none';
+                        memoField.style.display = 'block'; // 요청사항은 표시 (교환/반품/취소 사유)
+                        
+                        // 라벨과 플레이스홀더 변경
+                        memoLabel.textContent = '요청사항';
+                        memoInput.placeholder = '교환/반품/취소 사유를 입력해주세요';
+                        
+                        // 필드 초기화
+                        document.getElementById('customerName').value = '';
+                        document.getElementById('phone').value = '';
+                        document.getElementById('address').value = '';
+                        document.getElementById('detailAddress').value = '';
+                        document.getElementById('memo').value = '';
+                        
+                    } else {
+                        // 신규주문 시
+                        existingOrderField.style.display = 'none';
+                        existingOrderInput.required = false;
+                        existingOrderInput.value = '';
+                        
+                        // 모든 필드 표시
+                        customerNameField.style.display = 'block';
+                        phoneField.style.display = 'block';
+                        zipcodeField.style.display = 'block';
+                        addressField.style.display = 'block';
+                        detailAddressField.style.display = 'block';
+                        memoField.style.display = 'block';
+                        
+                        // 라벨과 플레이스홀더 변경
+                        memoLabel.textContent = '배송메세지';
+                        memoInput.placeholder = '배송 관련 요청사항을 입력해주세요';
+                    }
+                });
+            });
+
+            // 기존 주문번호 입력 시 자동 정보 로드
+            document.getElementById('existingOrderNumber').addEventListener('blur', async function() {
+                const orderNumber = this.value.trim();
+                const orderType = document.querySelector('input[name="orderType"]:checked').value;
+                
+                if (orderNumber && orderType !== '신규주문') {
+                    try {
+                        const existingOrder = await findExistingOrder(orderNumber, '');
+                        if (existingOrder) {
+                            // 기존 주문 정보를 자동으로 채워줌
+                            document.getElementById('customerName').value = existingOrder.customerName;
+                            document.getElementById('phone').value = existingOrder.phone;
+                            document.getElementById('product').value = existingOrder.product;
+                            document.getElementById('quantity').value = existingOrder.quantity;
+                            document.getElementById('address').value = existingOrder.address || '';
+                            document.getElementById('detailAddress').value = existingOrder.detailAddress || '';
+                            
+                            // 기존 주문의 배송메세지를 요청사항에 자동으로 채워줌
+                            if (existingOrder.memo) {
+                                document.getElementById('memo').value = `[기존주문] ${existingOrder.memo}`;
+                            }
+                            
+                            // 성공 메시지
+                            showMessage(`✅ 기존 주문 정보를 불러왔습니다. (${existingOrder.customerName}님)`, 'success');
+                        } else {
+                            showMessage('❌ 해당 주문번호를 찾을 수 없습니다.', 'error');
+                        }
+                    } catch (error) {
+                        console.error('기존 주문 검색 오류:', error);
+                    }
+                }
+            });
+
             // 주소 찾기 기능 (Daum 우편번호 API)
             document
                 .getElementById("btnFindAddr")
@@ -467,6 +1056,69 @@
                         },
                     }).open();
                 });
+
+            // 주문 확인 모달 이벤트
+            document.getElementById('confirmOrder').addEventListener('click', async function() {
+                const modal = document.getElementById('orderConfirmModal');
+                const orderData = modal.orderData;
+                
+                try {
+                    // Firebase에 주문 저장
+                    const ordersRef = ref(database, "orders");
+                    await push(ordersRef, orderData);
+                    
+                    // 모달 닫기
+                    modal.style.display = 'none';
+                    
+                    // 주문내역 저장 모달 표시
+                    showSaveOrderModal(orderData);
+                    
+                } catch (error) {
+                    console.error("주문 저장 오류:", error);
+                    showMessage("❌ 주문 저장 중 오류가 발생했습니다.", "error");
+                }
+            });
+
+            document.getElementById('cancelOrder').addEventListener('click', function() {
+                document.getElementById('orderConfirmModal').style.display = 'none';
+            });
+
+            // 주문내역 저장 모달 이벤트
+            document.getElementById('saveToAlbum').addEventListener('click', function() {
+                const modal = document.getElementById('saveOrderModal');
+                const orderData = modal.orderData;
+                
+                try {
+                    // 주문내역을 이미지로 생성
+                    const imageData = generateOrderImage(orderData);
+                    
+                    // 이미지 다운로드
+                    const link = document.createElement('a');
+                    link.download = `주문내역_${orderData.orderNumber}.png`;
+                    link.href = imageData;
+                    link.click();
+                    
+                    // 모달 닫기
+                    modal.style.display = 'none';
+                    
+                    // 폼 초기화 및 성공 메시지
+                    orderForm.reset();
+                    showMessage("✅ 주문이 성공적으로 접수되었습니다!", "success");
+                    
+                } catch (error) {
+                    console.error("이미지 생성 오류:", error);
+                    showMessage("❌ 이미지 생성 중 오류가 발생했습니다.", "error");
+                }
+            });
+
+            document.getElementById('skipSave').addEventListener('click', function() {
+                const modal = document.getElementById('saveOrderModal');
+                modal.style.display = 'none';
+                
+                // 폼 초기화 및 성공 메시지
+                orderForm.reset();
+                showMessage("✅ 주문이 성공적으로 접수되었습니다!", "success");
+            });
 
             // 관리자 페이지 열기
             btnAdmin.addEventListener("click", function () {
