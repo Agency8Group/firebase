@@ -685,11 +685,11 @@
                         </div>
                         <div class="pagination-controls" style="display: flex; justify-content: center; gap: 10px; align-items: center;">
                             <button class="btn btn-outline-primary btn-sm" onclick="changePage(1)" id="firstPage">처음</button>
-                            <button class="btn btn-outline-primary btn-sm" onclick="changePage(currentPage - 1)" id="nextPage">이전</button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="changePage(currentPage - 1)" id="prevPage">이전</button>
                             <span id="pageNumbers" style="margin: 0 15px;">
                                 <!-- 페이지 번호가 여기에 표시됩니다 -->
                             </span>
-                            <button class="btn btn-outline-primary btn-sm" onclick="changePage(currentPage + 1)" id="prevPage">다음</button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="changePage(currentPage + 1)" id="nextPage">다음</button>
                             <button class="btn btn-outline-primary btn-sm" onclick="changePage(Math.ceil(allFilteredData.length / itemsPerPage))" id="lastPage">마지막</button>
                         </div>
                     </div>
@@ -888,7 +888,12 @@
                 }
 
                 const entries = Object.entries(data);
-                allFilteredData = filterOrdersData(entries);
+                allFilteredData = filterOrdersData(entries)
+                    .sort((a, b) => {
+                        const aTime = a[1]?.createdAt || 0;
+                        const bTime = b[1]?.createdAt || 0;
+                        return bTime - aTime; // 최신순
+                    });
                 
                 // 페이지네이션 업데이트
                 currentPage = 1; // 첫 페이지로 리셋
@@ -1435,7 +1440,7 @@
                 }
             }
 
-            // Excel 내보내기 (필터링된 데이터만)
+            // Excel 내보내기 (필터링된 전체 데이터)
             window.exportToExcel = function () {
                 // 로딩 표시
                 const exportBtn = document.querySelector('button[onclick="exportToExcel()"]');
@@ -1444,26 +1449,18 @@
                 exportBtn.innerHTML = '<svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 처리중...';
                 
                 try {
-                    // 현재 테이블에 표시된 데이터 가져오기
-                    const tableBody = document.getElementById('ordersTableBody');
-                    const rows = tableBody.querySelectorAll('tr');
-                    
-                    if (rows.length === 0 || (rows.length === 1 && rows[0].textContent.includes('주문이 없습니다'))) {
+                    // 필터링된 전체 데이터 사용 (페이지네이션 무관)
+                    if (!allFilteredData || allFilteredData.length === 0) {
                         alert("내보낼 주문 데이터가 없습니다.");
                         return;
                     }
                     
-                    // 필터링된 데이터 수집
+                    // 필터링된 전체 데이터 수집
                     const filteredData = [];
                     let processedCount = 0;
-                    const totalCount = rows.length;
+                    const totalCount = allFilteredData.length;
                     
-                    rows.forEach((row) => {
-                        // "주문이 없습니다" 메시지 행은 제외
-                        if (row.textContent.includes('주문이 없습니다')) {
-                            return;
-                        }
-                        
+                    allFilteredData.forEach(([id, order]) => {
                         processedCount++;
                         
                         // 1000건마다 진행률 업데이트
@@ -1472,22 +1469,20 @@
                             exportBtn.innerHTML = `<svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ${progress}%`;
                         }
                         
-                        const cells = row.querySelectorAll('td');
-                        if (cells.length >= 12) { // 체크박스 포함 12개 컬럼
-                            filteredData.push({
-                                주문번호: cells[1].textContent.trim(),      // 체크박스 다음 컬럼
-                                주문시간: cells[2].textContent.trim(),
-                                입금자명: cells[3].textContent.trim(),
-                                연락처: cells[4].textContent.trim(),
-                                주문유형: cells[5].textContent.trim(),
-                                기존주문번호: cells[6].textContent.trim(),
-                                구매제품: cells[7].textContent.trim(),
-                                주소: cells[8].textContent.trim(),
-                                상세주소: cells[9].textContent.trim(),
-                                배송메세지: cells[10].textContent.trim(),
-                                배송상태: cells[11].textContent.trim()
-                            });
-                        }
+                        // 주문 데이터를 Excel 형식으로 변환
+                        filteredData.push({
+                            주문번호: order.orderNumber || '',
+                            주문시간: order.createdAt ? new Date(order.createdAt).toLocaleString("ko-KR") : '',
+                            입금자명: order.customerName || '',
+                            연락처: order.phone || '',
+                            주문유형: order.orderType || '신규주문',
+                            기존주문번호: order.existingOrderNumber || '-',
+                            구매제품: `${order.product || ''} (${order.quantity || 0}개)`,
+                            주소: order.address || '',
+                            상세주소: order.detailAddress || '',
+                            배송메세지: order.memo || '',
+                            배송상태: order.status || ''
+                        });
                     });
                     
                     // 데이터 개수 확인
