@@ -582,7 +582,7 @@
         <div id="invoiceUploadModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); align-items:center; justify-content:center; z-index:2000;">
             <div style="background:#fff; padding:20px; border-radius:10px; width:420px; max-width:90%;">
                 <h3 style="margin-top:0;">송장번호 업로드</h3>
-                <p style="color:#666; font-size:13px;">엑셀 양식: 주문번호 / 고객명 / 휴대번호 / 택배사 / 송장번호</p>
+                <p style="color:#666; font-size:13px;">엑셀 양식: 주문번호 / 택배사 / 송장번호</p>
                 <div style="display:flex; gap:8px; margin:10px 0 16px;">
                     <button class="btn btn-secondary btn-sm" onclick="downloadInvoiceTemplate()">양식 내려받기</button>
                     <label class="btn btn-primary btn-sm" style="cursor:pointer;">
@@ -839,7 +839,7 @@
             // 송장 양식 다운로드
             window.downloadInvoiceTemplate = function() {
                 const headers = [
-                    { 주문번호: 'ORD20240101000000', 고객명: '홍길동', 휴대번호: '010-1234-5678', 택배사: 'CJ대한통운', 송장번호: '123456789012' },
+                    { 주문번호: 'ORD20240101000000', 택배사: 'CJ대한통운', 송장번호: '123456789012' },
                 ];
                 const ws = XLSX.utils.json_to_sheet(headers);
                 const wb = XLSX.utils.book_new();
@@ -891,7 +891,6 @@
                             if (sampleData.length < 3) {
                                 sampleData.push({
                                     orderNumber: orderNumber,
-                                    customerName: row['고객명'] || '',
                                     courier: courier,
                                     invoice: invoice
                                 });
@@ -921,7 +920,7 @@
                         
                         sampleData.forEach((item, index) => {
                             previewHTML += `
-                                ${index + 1}. ${item.orderNumber} | ${item.customerName} | ${item.courier} | ${item.invoice}<br>
+                                ${index + 1}. ${item.orderNumber} | ${item.courier} | ${item.invoice}<br>
                             `;
                         });
                         
@@ -967,7 +966,7 @@
                     const sheetName = workbook.SheetNames[0];
                     const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
 
-                    // rows: [{ 주문번호, 고객명, 휴대번호, 택배사, 송장번호 }]
+                    // rows: [{ 주문번호, 택배사, 송장번호 }]
                     let updated = 0, notFound = 0, errors = 0, claimWarnings = 0;
                     const claimWarningOrders = [];
                     const allSnap = await get(ref(database, 'orders'));
