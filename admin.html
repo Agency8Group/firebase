@@ -512,6 +512,13 @@
         </style>
     </head>
     <body>
+        <!-- 상단 푸터 -->
+        <div class="top-footer" style="background: #f8f9fa; border-bottom: 1px solid #e9ecef; padding: 8px 0; text-align: center; position: sticky; top: 0; z-index: 1000;">
+            <a href="https://cx-tech-builder.netlify.app/" target="_blank" style="color: #6c757d; text-decoration: none; font-size: 12px; transition: color 0.2s ease;">
+                Powered by CX Tech Builder
+            </a>
+        </div>
+        
         <div class="header">
             <h1><svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 0000셀러 주문 접수 관리자<span id="status" class="status-indicator disconnected"></span></h1>
             <div class="header-stats">
@@ -578,6 +585,7 @@
                                 onkeyup="filterOrders()"
                             />
                         </div>
+
                         <div class="filter-selects">
                             <select
                                 id="orderTypeFilter"
@@ -609,6 +617,15 @@
                                 <option value="">전체 기간</option>
                                 <option value="today" selected>오늘</option>
                                 <option value="week">이번 주</option>
+                            </select>
+                            <select
+                                id="itemsPerPageFilter"
+                                class="filter-select"
+                                onchange="changeItemsPerPage(this.value)"
+                            >
+                                <option value="30" selected>30개씩 보기</option>
+                                <option value="50">50개씩 보기</option>
+                                <option value="100">100개씩 보기</option>
                             </select>
                             <button class="btn btn-primary btn-sm" onclick="refreshOrders()">
                                 <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> 새로고침
@@ -660,6 +677,22 @@
                             <!-- 주문 데이터가 여기에 동적으로 추가됩니다 -->
                         </tbody>
                     </table>
+                    
+                    <!-- 페이지 정보 및 페이지네이션 -->
+                    <div class="pagination-container" style="margin-top: 20px; text-align: center;">
+                        <div id="pageInfo" style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                            <!-- 페이지 정보가 여기에 표시됩니다 -->
+                        </div>
+                        <div class="pagination-controls" style="display: flex; justify-content: center; gap: 10px; align-items: center;">
+                            <button class="btn btn-outline-primary btn-sm" onclick="changePage(1)" id="firstPage">처음</button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="changePage(currentPage - 1)" id="nextPage">이전</button>
+                            <span id="pageNumbers" style="margin: 0 15px;">
+                                <!-- 페이지 번호가 여기에 표시됩니다 -->
+                            </span>
+                            <button class="btn btn-outline-primary btn-sm" onclick="changePage(currentPage + 1)" id="prevPage">다음</button>
+                            <button class="btn btn-outline-primary btn-sm" onclick="changePage(Math.ceil(allFilteredData.length / itemsPerPage))" id="lastPage">마지막</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -675,9 +708,7 @@
 
         <!-- Simple Footer -->
         <footer class="simple-footer">
-            <a href="https://cx-tech-builder.netlify.app/" target="_blank">
-                Powered by CX Tech Builder
-            </a>
+            <!-- cx-tech-builder 링크는 주문 목록 섹션으로 이동됨 -->
         </footer>
 
         <!-- Firebase SDK -->
@@ -713,6 +744,11 @@
             const statusDiv = document.getElementById("status");
             const ordersTableBody = document.getElementById("ordersTableBody");
             const recentOrdersList = document.getElementById("recentOrdersList");
+
+            // 페이지네이션 관련 변수
+            let currentPage = 1;
+            let itemsPerPage = 30;
+            let allFilteredData = [];
 
             // 연결 상태 확인
             const connectedRef = ref(database, ".info/connected");
@@ -757,30 +793,106 @@
                 updateDeletionDateInfo();
             });
 
+            // 페이지네이션 함수들
+            function updatePagination() {
+                const totalPages = Math.ceil(allFilteredData.length / itemsPerPage);
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                
+                // 현재 페이지 데이터만 표시
+                const currentPageData = allFilteredData.slice(startIndex, endIndex);
+                
+                // 테이블 업데이트
+                ordersTableBody.innerHTML = "";
+                
+                if (currentPageData.length === 0) {
+                    ordersTableBody.innerHTML =
+                        '<tr><td colspan="12" style="text-align: center; padding: 20px;">표시할 주문이 없습니다.</td></tr>';
+                    return;
+                }
+                
+                currentPageData.forEach(([id, order]) => {
+                    const row = createOrderRow(id, order);
+                    ordersTableBody.appendChild(row);
+                });
+                
+                // 페이지 정보 표시
+                updatePageInfo(totalPages);
+            }
+            
+            function updatePageInfo(totalPages) {
+                const pageInfo = document.getElementById('pageInfo');
+                const pageNumbers = document.getElementById('pageNumbers');
+                
+                if (pageInfo) {
+                    pageInfo.innerHTML = `
+                        <span>총 ${allFilteredData.length}건 중 ${(currentPage - 1) * itemsPerPage + 1}-${Math.min(currentPage * itemsPerPage, allFilteredData.length)}건 표시</span>
+                        <span style="margin-left: 20px;">페이지 ${currentPage} / ${totalPages}</span>
+                    `;
+                }
+                
+                // 페이지 번호 버튼 생성
+                if (pageNumbers && totalPages > 1) {
+                    let pageButtons = '';
+                    const startPage = Math.max(1, currentPage - 2);
+                    const endPage = Math.min(totalPages, currentPage + 2);
+                    
+                    for (let i = startPage; i <= endPage; i++) {
+                        if (i === currentPage) {
+                            pageButtons += `<button class="btn btn-primary btn-sm" style="margin: 0 2px;">${i}</button>`;
+                        } else {
+                            pageButtons += `<button class="btn btn-outline-primary btn-sm" style="margin: 0 2px;" onclick="changePage(${i})">${i}</button>`;
+                        }
+                    }
+                    pageNumbers.innerHTML = pageButtons;
+                } else if (pageNumbers) {
+                    pageNumbers.innerHTML = '';
+                }
+                
+                // 페이지네이션 버튼 활성화/비활성화
+                updatePaginationButtons(totalPages);
+            }
+            
+            function updatePaginationButtons(totalPages) {
+                const firstPage = document.getElementById('firstPage');
+                const prevPage = document.getElementById('prevPage');
+                const nextPage = document.getElementById('nextPage');
+                const lastPage = document.getElementById('lastPage');
+                
+                if (firstPage) firstPage.disabled = currentPage === 1;
+                if (prevPage) prevPage.disabled = currentPage === 1;
+                if (nextPage) nextPage.disabled = currentPage === totalPages;
+                if (lastPage) lastPage.disabled = currentPage === totalPages;
+            }
+            
+            function changePage(page) {
+                const totalPages = Math.ceil(allFilteredData.length / itemsPerPage);
+                if (page >= 1 && page <= totalPages) {
+                    currentPage = page;
+                    updatePagination();
+                }
+            }
+            
+            function changeItemsPerPage(newItemsPerPage) {
+                itemsPerPage = parseInt(newItemsPerPage);
+                currentPage = 1; // 첫 페이지로 리셋
+                updatePagination();
+            }
+
             // 주문 테이블 업데이트
             function updateOrdersTable(data) {
-                ordersTableBody.innerHTML = "";
-
                 if (!data) {
-                    ordersTableBody.innerHTML =
-                        '<tr><td colspan="10" style="text-align: center; padding: 20px;">주문이 없습니다.</td></tr>';
+                    allFilteredData = [];
+                    updatePagination();
                     return;
                 }
 
                 const entries = Object.entries(data);
-                const filteredEntries = filterOrdersData(entries);
-
-                if (filteredEntries.length === 0) {
-                    ordersTableBody.innerHTML =
-                        '<tr><td colspan="10" style="text-align: center; padding: 20px;">필터링된 주문이 없습니다.</td></tr>';
-                    return;
-                }
-
-                // 최신 주문부터 표시
-                filteredEntries.reverse().forEach(([id, order]) => {
-                    const row = createOrderRow(id, order);
-                    ordersTableBody.appendChild(row);
-                });
+                allFilteredData = filterOrdersData(entries);
+                
+                // 페이지네이션 업데이트
+                currentPage = 1; // 첫 페이지로 리셋
+                updatePagination();
             }
 
 
@@ -1111,13 +1223,16 @@
                     
                     console.log('신규주문 진행중 필터링 결과:', filteredEntries.length, '건');
                     
-                    // 필터링된 데이터로 테이블 업데이트
+                    // 필터링된 데이터로 테이블 업데이트 (페이지네이션 적용)
                     const filteredData = {};
                     filteredEntries.forEach(([id, order]) => {
                         filteredData[id] = order;
                     });
                     
-                    updateOrdersTable(filteredData);
+                    // 페이지네이션 리셋 및 테이블 업데이트
+                    currentPage = 1;
+                    allFilteredData = Object.entries(filteredData);
+                    updatePagination();
                     updateStats(filteredData);
                     updateRecentOrders(filteredData);
                 }, { onlyOnce: true });
@@ -1154,13 +1269,16 @@
                     
                     console.log('교환/반품/취소 진행중 필터링 결과:', filteredEntries.length, '건');
                     
-                    // 필터링된 데이터로 테이블 업데이트
+                    // 필터링된 데이터로 테이블 업데이트 (페이지네이션 적용)
                     const filteredData = {};
                     filteredEntries.forEach(([id, order]) => {
                         filteredData[id] = order;
                     });
                     
-                    updateOrdersTable(filteredData);
+                    // 페이지네이션 리셋 및 테이블 업데이트
+                    currentPage = 1;
+                    allFilteredData = Object.entries(filteredData);
+                    updatePagination();
                     updateStats(filteredData);
                     updateRecentOrders(filteredData);
                 }, { onlyOnce: true });
