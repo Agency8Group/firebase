@@ -955,18 +955,14 @@
             // 신규주문 진행중 필터링
             window.filterNewOrdersInProgress = function() {
                 // 필터 초기화
-                document.getElementById('orderTypeFilter').value = '신규주문';
+                document.getElementById('orderTypeFilter').value = '';
                 document.getElementById('statusFilter').value = '';
                 document.getElementById('dateFilter').value = '';
                 document.getElementById('phoneSearch').value = '';
                 document.getElementById('orderNumberSearch').value = '';
                 
-                // 상태 필터를 '접수' 또는 '배송중'으로 설정
-                const statusFilter = document.getElementById('statusFilter');
-                statusFilter.value = '접수';
-                
-                // 필터 적용
-                filterOrders();
+                // JavaScript에서 직접 필터링
+                filterNewOrdersInProgressCustom();
                 
                 // 사용자에게 알림
                 alert('신규주문 중 접수/배송중 상태인 주문만 표시됩니다.');
@@ -981,16 +977,8 @@
                 document.getElementById('phoneSearch').value = '';
                 document.getElementById('orderNumberSearch').value = '';
                 
-                // 주문유형을 '교환', '반품', '취소'로 설정
-                const orderTypeFilter = document.getElementById('orderTypeFilter');
-                orderTypeFilter.value = '교환';
-                
-                // 상태 필터를 '접수' 또는 '배송중'으로 설정
-                const statusFilter = document.getElementById('statusFilter');
-                statusFilter.value = '접수';
-                
-                // 필터 적용
-                filterOrders();
+                // JavaScript에서 직접 필터링
+                filterExchangeReturnInProgressCustom();
                 
                 // 사용자에게 알림
                 alert('교환/반품/취소 중 접수/배송중 상태인 주문만 표시됩니다.');
@@ -1028,6 +1016,177 @@
                     bulkActions.style.display = 'none';
                     selectAll.checked = false;
                 }
+            }
+
+            // 신규주문 진행중 커스텀 필터링
+            function filterNewOrdersInProgressCustom() {
+                const ordersRef = ref(database, "orders");
+                const ordersQuery = query(ordersRef, orderByChild("createdAt"));
+                onValue(ordersQuery, (snapshot) => {
+                    const data = snapshot.val();
+                    if (!data) {
+                        updateOrdersTable({});
+                        return;
+                    }
+                    
+                    const entries = Object.entries(data);
+                    console.log('전체 주문 데이터:', entries.length, '건');
+                    
+                    const filteredEntries = entries.filter(([id, order]) => {
+                        // 주문유형 필터 (신규주문만)
+                        if (order.orderType !== '신규주문') {
+                            return false;
+                        }
+                        
+                        // 상태 필터 (접수 또는 배송중만)
+                        if (order.status !== '접수' && order.status !== '배송중') {
+                            return false;
+                        }
+                        
+                        console.log('신규주문 진행중 통과:', order.orderType, order.status, order.orderNumber);
+                        return true;
+                    });
+                    
+                    console.log('신규주문 진행중 필터링 결과:', filteredEntries.length, '건');
+                    
+                    // 필터링된 데이터로 테이블 업데이트
+                    const filteredData = {};
+                    filteredEntries.forEach(([id, order]) => {
+                        filteredData[id] = order;
+                    });
+                    
+                    updateOrdersTable(filteredData);
+                    updateStats(filteredData);
+                    updateRecentOrders(filteredData);
+                }, { onlyOnce: true });
+            }
+
+            // 교환/반품/취소 진행중 커스텀 필터링
+            function filterExchangeReturnInProgressCustom() {
+                const ordersRef = ref(database, "orders");
+                const ordersQuery = query(ordersRef, orderByChild("createdAt"));
+                onValue(ordersQuery, (snapshot) => {
+                    const data = snapshot.val();
+                    if (!data) {
+                        updateOrdersTable({});
+                        return;
+                    }
+                    
+                    const entries = Object.entries(data);
+                    console.log('전체 주문 데이터:', entries.length, '건');
+                    
+                    const filteredEntries = entries.filter(([id, order]) => {
+                        // 주문유형 필터 (교환, 반품, 취소만)
+                        if (order.orderType !== '교환' && order.orderType !== '반품' && order.orderType !== '취소') {
+                            return false;
+                        }
+                        
+                        // 상태 필터 (접수 또는 배송중만)
+                        if (order.status !== '접수' && order.status !== '배송중') {
+                            return false;
+                        }
+                        
+                        console.log('교환/반품/취소 진행중 통과:', order.orderType, order.status, order.orderNumber);
+                        return true;
+                    });
+                    
+                    console.log('교환/반품/취소 진행중 필터링 결과:', filteredEntries.length, '건');
+                    
+                    // 필터링된 데이터로 테이블 업데이트
+                    const filteredData = {};
+                    filteredEntries.forEach(([id, order]) => {
+                        filteredData[id] = order;
+                    });
+                    
+                    updateOrdersTable(filteredData);
+                    updateStats(filteredData);
+                    updateRecentOrders(filteredData);
+                }, { onlyOnce: true });
+            }
+
+            // 커스텀 상태 필터링 (여러 상태 동시 지원)
+            function filterOrdersWithCustomStatus(allowedStatuses) {
+                const ordersRef = ref(database, "orders");
+                const ordersQuery = query(ordersRef, orderByChild("createdAt"));
+                onValue(ordersQuery, (snapshot) => {
+                    const data = snapshot.val();
+                    if (!data) {
+                        updateOrdersTable({});
+                        return;
+                    }
+                    
+                    const entries = Object.entries(data);
+                    const filteredEntries = entries.filter(([id, order]) => {
+                        // 주문유형 필터 (신규주문)
+                        if (order.orderType !== '신규주문') {
+                            return false;
+                        }
+                        
+                        // 상태 필터 (접수 또는 배송중)
+                        if (!allowedStatuses.includes(order.status)) {
+                            return false;
+                        }
+                        
+                        return true;
+                    });
+                    
+                    // 필터링된 데이터로 테이블 업데이트
+                    const filteredData = {};
+                    filteredEntries.forEach(([id, order]) => {
+                        filteredData[id] = order;
+                    });
+                    
+                    updateOrdersTable(filteredData);
+                    updateStats(filteredData);
+                    updateRecentOrders(filteredData);
+                }, { onlyOnce: true });
+            }
+
+            // 커스텀 주문유형과 상태 필터링
+            function filterOrdersWithCustomTypeAndStatus(allowedTypes, allowedStatuses) {
+                const ordersRef = ref(database, "orders");
+                const ordersQuery = query(ordersRef, orderByChild("createdAt"));
+                onValue(ordersQuery, (snapshot) => {
+                    const data = snapshot.val();
+                    if (!data) {
+                        updateOrdersTable({});
+                        return;
+                    }
+                    
+                    const entries = Object.entries(data);
+                    console.log('전체 주문 데이터:', entries.length, '건');
+                    console.log('허용된 주문유형:', allowedTypes);
+                    console.log('허용된 상태:', allowedStatuses);
+                    
+                    const filteredEntries = entries.filter(([id, order]) => {
+                        // 주문유형 필터 (교환, 반품, 취소)
+                        if (!allowedTypes.includes(order.orderType)) {
+                            console.log('주문유형 필터링 제외:', order.orderType, order.orderNumber);
+                            return false;
+                        }
+                        
+                        // 상태 필터 (접수 또는 배송중)
+                        if (!allowedStatuses.includes(order.status)) {
+                            console.log('상태 필터링 제외:', order.status, order.orderNumber);
+                            return false;
+                        }
+                        
+                        console.log('필터링 통과:', order.orderType, order.status, order.orderNumber);
+                        return true;
+                    });
+                    
+                    console.log('필터링 결과:', filteredEntries.length, '건');
+                    
+                    // 필터링된 데이터로 테이블 업데이트
+                    const filteredData = {};
+                    filteredEntries.forEach(([id, order]) => {
+                        filteredData[id] = order;
+                    });
+                    
+                    updateOrdersTable(filteredData);
+                    updateStats(filteredData);
+                    updateRecentOrders(filteredData);
+                }, { onlyOnce: true });
             }
 
             // 일괄 상태 업데이트
