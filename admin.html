@@ -84,14 +84,45 @@
                 margin-left: 12px;
                 vertical-align: middle;
                 border: 2px solid #ddd;
+                animation: pulse 2s infinite;
             }
 
             .status-indicator.connected {
                 background-color: #28a745;
+                border-color: #28a745;
+                box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+                animation: pulse 2s infinite;
             }
 
             .status-indicator.disconnected {
                 background-color: #dc3545;
+                border-color: #dc3545;
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+                animation: pulse-disconnected 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+                }
+                70% {
+                    box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+                }
+                100% {
+                    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+                }
+            }
+
+            @keyframes pulse-disconnected {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+                }
+                70% {
+                    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+                }
+                100% {
+                    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+                }
             }
 
             .controls {
@@ -256,8 +287,6 @@
                 color: #0c5460;
             }
 
-
-
             .status-배송완료 {
                 background-color: #d4edda;
                 color: #155724;
@@ -291,8 +320,6 @@
                 padding: 24px;
                 border: 1px solid #f1f3f4;
             }
-
-
 
             .recent-orders {
                 margin-top: 20px;
@@ -413,37 +440,37 @@
                     padding: 8px;
                     font-size: 13px;
                 }
-                
+
                 .header {
                     padding: 12px;
                     border-radius: 12px;
                 }
-                
+
                 .header h1 {
                     font-size: 20px;
                     margin-bottom: 16px;
                 }
-                
+
                 .header-stats {
                     flex-direction: column;
                     gap: 10px;
                     padding: 12px;
                 }
-                
+
                 .stats-item {
                     flex-direction: row;
                     justify-content: space-between;
                     width: 100%;
                 }
-                
+
                 .stats-item .stats-number {
                     font-size: 16px;
                 }
-                
+
                 .stats-item .stats-label {
                     font-size: 11px;
                 }
-                
+
                 .main-content {
                     grid-template-columns: 1fr;
                     gap: 12px;
@@ -453,17 +480,17 @@
                     flex-direction: column;
                     gap: 8px;
                 }
-                
+
                 .search-fields {
                     flex-direction: column;
                     gap: 8px;
                 }
-                
+
                 .search-input {
                     min-width: auto;
                     width: 100%;
                 }
-                
+
                 .filter-selects {
                     flex-direction: column;
                     gap: 8px;
@@ -473,16 +500,16 @@
                     flex-direction: column;
                     gap: 8px;
                 }
-                
+
                 .orders-table {
                     font-size: 11px;
                 }
-                
+
                 .orders-table th,
                 .orders-table td {
                     padding: 4px 2px;
                 }
-                
+
                 .btn {
                     padding: 8px 12px;
                     min-height: 40px;
@@ -512,14 +539,48 @@
     </head>
     <body>
         <!-- 상단 푸터 -->
-        <div class="top-footer" style="background: #f8f9fa; border-bottom: 1px solid #e9ecef; padding: 8px 0; text-align: center; position: sticky; top: 0; z-index: 1000;">
-            <a href="https://cx-tech-builder.netlify.app/" target="_blank" style="color: #6c757d; text-decoration: none; font-size: 12px; transition: color 0.2s ease;">
+        <div
+            class="top-footer"
+            style="
+                background: #f8f9fa;
+                border-bottom: 1px solid #e9ecef;
+                padding: 8px 0;
+                text-align: center;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            "
+        >
+            <a
+                href="https://cx-tech-builder.netlify.app/"
+                target="_blank"
+                style="
+                    color: #6c757d;
+                    text-decoration: none;
+                    font-size: 12px;
+                    transition: color 0.2s ease;
+                "
+            >
                 Powered by CX Tech Builder
             </a>
         </div>
-        
+
         <div class="header">
-            <h1><svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 0000셀러 주문 접수 관리자<span id="status" class="status-indicator disconnected"></span></h1>
+            <h1>
+                <svg
+                    class="inline-icon"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                >
+                    <path
+                        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                    />
+                </svg>
+                0000셀러 주문 접수 관리자<span
+                    id="status"
+                    class="status-indicator disconnected"
+                ></span>
+            </h1>
             <div class="header-stats">
                 <div class="stats-item">
                     <span class="stats-label">오늘 신규주문</span>
@@ -527,7 +588,9 @@
                 </div>
                 <div class="stats-item">
                     <span class="stats-label">교환접수요청</span>
-                    <span class="stats-number" id="todayExchangeRequests">0</span>
+                    <span class="stats-number" id="todayExchangeRequests"
+                        >0</span
+                    >
                 </div>
                 <div class="stats-item">
                     <span class="stats-label">반품접수요청</span>
@@ -540,26 +603,98 @@
             </div>
             <div class="status-bar">
                 <div class="controls">
-                    <button class="btn btn-warning" onclick="filterNewOrdersInProgress()">
-                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 신규주문 진행중
+                    <button
+                        class="btn btn-warning"
+                        onclick="filterNewOrdersInProgress()"
+                    >
+                        <svg
+                            class="inline-icon"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                            />
+                        </svg>
+                        신규주문 진행중
                     </button>
-                    <button class="btn btn-info" onclick="filterExchangeReturnInProgress()">
-                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg> 교환/반품/취소 진행중
+                    <button
+                        class="btn btn-info"
+                        onclick="filterExchangeReturnInProgress()"
+                    >
+                        <svg
+                            class="inline-icon"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
+                            />
+                        </svg>
+                        교환/반품/취소 진행중
                     </button>
                     <button class="btn btn-secondary" onclick="showAllOrders()">
-                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg> 전체 보기
+                        <svg
+                            class="inline-icon"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
+                            />
+                        </svg>
+                        전체 보기
                     </button>
                     <button class="btn btn-success" onclick="exportToExcelAI()">
-                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> AI용 내보내기
+                        <svg
+                            class="inline-icon"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"
+                            />
+                        </svg>
+                        AI 변환용 내보내기(엑셀)
                     </button>
                     <button class="btn btn-info" onclick="exportToExcelFull()">
-                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> 전체 내보내기
+                        <svg
+                            class="inline-icon"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"
+                            />
+                        </svg>
+                        송장 포함 전체 내보내기(엑셀)
                     </button>
                     <button class="btn btn-primary" onclick="refreshOrders()">
-                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> 새로고침
+                        <svg
+                            class="inline-icon"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+                            />
+                        </svg>
+                        새로고침
                     </button>
-                    <button class="btn btn-outline" onclick="openInvoiceUploadModal()">
-                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> 송장 업로드
+                    <button
+                        class="btn btn-outline"
+                        onclick="openInvoiceUploadModal()"
+                    >
+                        <svg
+                            class="inline-icon"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"
+                            />
+                        </svg>
+                        송장 업로드
                     </button>
                 </div>
             </div>
@@ -568,36 +703,150 @@
         <div class="main-content">
             <div class="orders-section">
                 <div class="section-header">
-                    <h2><svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg> 주문 목록</h2>
-                                            <div class="auto-delete-warning">
-                    <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor" style="color: #dc3545;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                    <span>⚠️ 주문 데이터는 7일이 지나면 자동으로 삭제됩니다. <span id="deletionDateInfo" style="font-weight: bold; color: #e74c3c;"></span> 중요한 데이터는 Excel로 다운로드하여 백업하세요.</span>
-                </div>
-                <div class="auto-complete-info" style="margin-top: 8px; padding: 8px 12px; background: #f8f9fa; font-size: 12px; color: #6c757d;">
-                    <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor" style="color: #6c757d;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                    <span>✅ 송장번호 등록 후 3영업일(주말/공휴일 제외)이 지나면 자동으로 배송완료 처리됩니다.</span>
-                </div>
+                    <h2>
+                        <svg
+                            class="inline-icon"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
+                            />
+                        </svg>
+                        주문 목록
+                    </h2>
+                    <div class="auto-delete-warning">
+                        <svg
+                            class="inline-icon"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            style="color: #dc3545"
+                        >
+                            <path
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                            />
+                        </svg>
+                        <span
+                            >⚠️ 주문 데이터는 7일이 지나면 자동으로 삭제됩니다.
+                            <span
+                                id="deletionDateInfo"
+                                style="font-weight: bold; color: #e74c3c"
+                            ></span>
+                            중요한 데이터는 Excel로 다운로드하여
+                            백업하세요.</span
+                        >
+                    </div>
+                    <div
+                        class="auto-complete-info"
+                        style="
+                            margin-top: 8px;
+                            padding: 8px 12px;
+                            background: #f8f9fa;
+                            font-size: 12px;
+                            color: #6c757d;
+                        "
+                    >
+                        <svg
+                            class="inline-icon"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            style="color: #6c757d"
+                        >
+                            <path
+                                d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                            />
+                        </svg>
+                        <span
+                            >✅ 송장번호 등록 후 3영업일(주말/공휴일 제외)이
+                            지나면 자동으로 배송완료 처리됩니다.</span
+                        >
+                    </div>
 
-        <!-- 송장 업로드 모달 -->
-        <div id="invoiceUploadModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); align-items:center; justify-content:center; z-index:2000;">
-            <div style="background:#fff; padding:20px; border-radius:10px; width:420px; max-width:90%;">
-                <h3 style="margin-top:0;">송장번호 업로드</h3>
-                <p style="color:#666; font-size:13px;">엑셀 양식: 주문번호 / 택배사 / 송장번호</p>
-                <div style="display:flex; gap:8px; margin:10px 0 16px;">
-                    <button class="btn btn-secondary btn-sm" onclick="downloadInvoiceTemplate()">양식 내려받기</button>
-                    <label class="btn btn-primary btn-sm" style="cursor:pointer;">
-                        파일 선택
-                        <input id="invoiceFileInput" type="file" accept=".xlsx,.xls" style="display:none" onchange="previewInvoiceFile()" />
-                    </label>
-                    <button id="uploadBtn" class="btn btn-success btn-sm" onclick="startInvoiceImport()" disabled>업로드</button>
-                </div>
-                <div id="invoiceImportStatus" style="font-size:12px; color:#555;"></div>
-                <div id="invoicePreview" style="margin:10px 0; padding:10px; background:#f8f9fa; border-radius:4px; display:none;"></div>
-                <div style="text-align:right; margin-top:12px;">
-                    <button class="btn" onclick="closeInvoiceUploadModal()">닫기</button>
-                </div>
-            </div>
-        </div>
+                    <!-- 송장 업로드 모달 -->
+                    <div
+                        id="invoiceUploadModal"
+                        style="
+                            display: none;
+                            position: fixed;
+                            inset: 0;
+                            background: rgba(0, 0, 0, 0.4);
+                            align-items: center;
+                            justify-content: center;
+                            z-index: 2000;
+                        "
+                    >
+                        <div
+                            style="
+                                background: #fff;
+                                padding: 20px;
+                                border-radius: 10px;
+                                width: 420px;
+                                max-width: 90%;
+                            "
+                        >
+                            <h3 style="margin-top: 0">송장번호 업로드</h3>
+                            <p style="color: #666; font-size: 13px">
+                                엑셀 양식: 주문번호 / 택배사 / 송장번호
+                            </p>
+                            <div
+                                style="
+                                    display: flex;
+                                    gap: 8px;
+                                    margin: 10px 0 16px;
+                                "
+                            >
+                                <button
+                                    class="btn btn-secondary btn-sm"
+                                    onclick="downloadInvoiceTemplate()"
+                                >
+                                    양식 내려받기
+                                </button>
+                                <label
+                                    class="btn btn-primary btn-sm"
+                                    style="cursor: pointer"
+                                >
+                                    파일 선택
+                                    <input
+                                        id="invoiceFileInput"
+                                        type="file"
+                                        accept=".xlsx,.xls"
+                                        style="display: none"
+                                        onchange="previewInvoiceFile()"
+                                    />
+                                </label>
+                                <button
+                                    id="uploadBtn"
+                                    class="btn btn-success btn-sm"
+                                    onclick="startInvoiceImport()"
+                                    disabled
+                                >
+                                    업로드
+                                </button>
+                            </div>
+                            <div
+                                id="invoiceImportStatus"
+                                style="font-size: 12px; color: #555"
+                            ></div>
+                            <div
+                                id="invoicePreview"
+                                style="
+                                    margin: 10px 0;
+                                    padding: 10px;
+                                    background: #f8f9fa;
+                                    border-radius: 4px;
+                                    display: none;
+                                "
+                            ></div>
+                            <div style="text-align: right; margin-top: 12px">
+                                <button
+                                    class="btn"
+                                    onclick="closeInvoiceUploadModal()"
+                                >
+                                    닫기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                     <div class="filters">
                         <div class="search-fields">
                             <input
@@ -657,8 +906,20 @@
                                 <option value="50">50개씩 보기</option>
                                 <option value="100">100개씩 보기</option>
                             </select>
-                            <button class="btn btn-primary btn-sm" onclick="refreshOrders()">
-                                <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> 새로고침
+                            <button
+                                class="btn btn-primary btn-sm"
+                                onclick="refreshOrders()"
+                            >
+                                <svg
+                                    class="inline-icon"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"
+                                    />
+                                </svg>
+                                새로고침
                             </button>
                         </div>
                     </div>
@@ -666,28 +927,69 @@
 
                 <div class="table-container">
                     <!-- 일괄 처리 도구 -->
-                    <div class="bulk-actions" style="display: none;">
+                    <div class="bulk-actions" style="display: none">
                         <div class="bulk-actions-info">
                             <span id="selectedCount">0개 선택됨</span>
                         </div>
                         <div class="bulk-actions-buttons">
-                            <button class="btn btn-success btn-sm" onclick="bulkUpdateStatus('배송완료')">
-                                <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> 선택된 주문 배송완료
+                            <button
+                                class="btn btn-success btn-sm"
+                                onclick="bulkUpdateStatus('배송완료')"
+                            >
+                                <svg
+                                    class="inline-icon"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
+                                    />
+                                </svg>
+                                선택된 주문 배송완료
                             </button>
-                            <button class="btn btn-warning btn-sm" onclick="bulkUpdateStatus('배송중')">
-                                <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 선택된 주문 배송중
+                            <button
+                                class="btn btn-warning btn-sm"
+                                onclick="bulkUpdateStatus('배송중')"
+                            >
+                                <svg
+                                    class="inline-icon"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                                    />
+                                </svg>
+                                선택된 주문 배송중
                             </button>
-                            <button class="btn btn-danger btn-sm" onclick="bulkUpdateStatus('취소')">
-                                <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg> 선택된 주문 취소
+                            <button
+                                class="btn btn-danger btn-sm"
+                                onclick="bulkUpdateStatus('취소')"
+                            >
+                                <svg
+                                    class="inline-icon"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
+                                    />
+                                </svg>
+                                선택된 주문 취소
                             </button>
                         </div>
                     </div>
-                    
+
                     <table class="orders-table" id="ordersTable">
                         <thead>
                             <tr>
                                 <th>
-                                    <input type="checkbox" id="selectAll" onchange="toggleSelectAll()" title="전체 선택">
+                                    <input
+                                        type="checkbox"
+                                        id="selectAll"
+                                        onchange="toggleSelectAll()"
+                                        title="전체 선택"
+                                    />
                                 </th>
                                 <th>주문번호</th>
                                 <th>주문시간</th>
@@ -709,26 +1011,66 @@
                             <!-- 주문 데이터가 여기에 동적으로 추가됩니다 -->
                         </tbody>
                     </table>
-                    
+
                     <!-- 페이지 정보 및 페이지네이션 -->
-                    <div class="pagination-container" style="margin-top: 20px; text-align: center;">
-                        <div id="pageInfo" style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                    <div
+                        class="pagination-container"
+                        style="margin-top: 20px; text-align: center"
+                    >
+                        <div
+                            id="pageInfo"
+                            style="
+                                margin-bottom: 15px;
+                                color: #666;
+                                font-size: 14px;
+                            "
+                        >
                             <!-- 페이지 정보가 여기에 표시됩니다 -->
                         </div>
-                        <div class="pagination-controls" style="display: flex; justify-content: center; gap: 10px; align-items: center;">
-                            <button class="btn btn-outline-primary btn-sm" onclick="changePage(1)" id="firstPage">처음</button>
-                            <button class="btn btn-outline-primary btn-sm" onclick="changePage(currentPage - 1)" id="prevPage">이전</button>
-                            <span id="pageNumbers" style="margin: 0 15px;">
+                        <div
+                            class="pagination-controls"
+                            style="
+                                display: flex;
+                                justify-content: center;
+                                gap: 10px;
+                                align-items: center;
+                            "
+                        >
+                            <button
+                                class="btn btn-outline-primary btn-sm"
+                                onclick="changePage(1)"
+                                id="firstPage"
+                            >
+                                처음
+                            </button>
+                            <button
+                                class="btn btn-outline-primary btn-sm"
+                                onclick="changePage(currentPage - 1)"
+                                id="prevPage"
+                            >
+                                이전
+                            </button>
+                            <span id="pageNumbers" style="margin: 0 15px">
                                 <!-- 페이지 번호가 여기에 표시됩니다 -->
                             </span>
-                            <button class="btn btn-outline-primary btn-sm" onclick="changePage(currentPage + 1)" id="nextPage">다음</button>
-                            <button class="btn btn-outline-primary btn-sm" onclick="changePage(Math.ceil(allFilteredData.length / itemsPerPage))" id="lastPage">마지막</button>
+                            <button
+                                class="btn btn-outline-primary btn-sm"
+                                onclick="changePage(currentPage + 1)"
+                                id="nextPage"
+                            >
+                                다음
+                            </button>
+                            <button
+                                class="btn btn-outline-primary btn-sm"
+                                onclick="changePage(Math.ceil(allFilteredData.length / itemsPerPage))"
+                                id="lastPage"
+                            >
+                                마지막
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-
-
         </div>
 
         <!-- Simple Footer -->
@@ -760,7 +1102,8 @@
                 messagingSenderId: "740000823974",
                 appId: "1:740000823974:web:ac62ca392ffb34e96e9267",
                 measurementId: "G-Q8ZNT6PDB9",
-                databaseURL: "https://seller1-b8a4c-default-rtdb.asia-southeast1.firebasedatabase.app"
+                databaseURL:
+                    "https://seller1-b8a4c-default-rtdb.asia-southeast1.firebasedatabase.app",
             };
 
             // Initialize Firebase
@@ -770,7 +1113,8 @@
             // DOM 요소들
             const statusDiv = document.getElementById("status");
             const ordersTableBody = document.getElementById("ordersTableBody");
-            const recentOrdersList = document.getElementById("recentOrdersList");
+            const recentOrdersList =
+                document.getElementById("recentOrdersList");
 
             // 페이지네이션 관련 변수
             let currentPage = 1;
@@ -790,16 +1134,22 @@
             // 삭제 예정일 계산 및 표시
             function updateDeletionDateInfo() {
                 const today = new Date();
-                const deletionDate = new Date(today.getTime() + (7 * 24 * 60 * 60 * 1000)); // 7일 후
-                
-                const deletionDateInfo = document.getElementById('deletionDateInfo');
+                const deletionDate = new Date(
+                    today.getTime() + 7 * 24 * 60 * 60 * 1000
+                ); // 7일 후
+
+                const deletionDateInfo =
+                    document.getElementById("deletionDateInfo");
                 if (deletionDateInfo) {
-                    const formattedDate = deletionDate.toLocaleDateString('ko-KR', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        weekday: 'long'
-                    });
+                    const formattedDate = deletionDate.toLocaleDateString(
+                        "ko-KR",
+                        {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                            weekday: "long",
+                        }
+                    );
                     deletionDateInfo.textContent = `오늘 기준 ${formattedDate} 삭제 예정`;
                 }
             }
@@ -812,87 +1162,100 @@
                 updateOrdersTable(data);
                 updateStats(data);
                 updateRecentOrders(data);
-                
-                            // 7일이 지난 주문 자동 삭제
-            deleteOldOrders(data);
-            
-            // 3일이 지난 배송중 주문 자동 완료 처리
-            autoCompleteShippedOrders(data);
-            
-            // 삭제 예정일 정보 업데이트
-            updateDeletionDateInfo();
+
+                // 7일이 지난 주문 자동 삭제
+                deleteOldOrders(data);
+
+                // 3일이 지난 배송중 주문 자동 완료 처리
+                autoCompleteShippedOrders(data);
+
+                // 삭제 예정일 정보 업데이트
+                updateDeletionDateInfo();
             });
 
             // 송장 업로드 모달 제어
-            window.openInvoiceUploadModal = function() {
-                document.getElementById('invoiceUploadModal').style.display = 'flex';
-                document.getElementById('invoiceImportStatus').textContent = '';
-                document.getElementById('invoicePreview').style.display = 'none';
-                document.getElementById('uploadBtn').disabled = true;
-                const fileInput = document.getElementById('invoiceFileInput');
-                if (fileInput) fileInput.value = '';
+            window.openInvoiceUploadModal = function () {
+                document.getElementById("invoiceUploadModal").style.display =
+                    "flex";
+                document.getElementById("invoiceImportStatus").textContent = "";
+                document.getElementById("invoicePreview").style.display =
+                    "none";
+                document.getElementById("uploadBtn").disabled = true;
+                const fileInput = document.getElementById("invoiceFileInput");
+                if (fileInput) fileInput.value = "";
             };
-            window.closeInvoiceUploadModal = function() {
-                document.getElementById('invoiceUploadModal').style.display = 'none';
+            window.closeInvoiceUploadModal = function () {
+                document.getElementById("invoiceUploadModal").style.display =
+                    "none";
             };
 
             // 송장 양식 다운로드
-            window.downloadInvoiceTemplate = function() {
+            window.downloadInvoiceTemplate = function () {
                 const headers = [
-                    { 주문번호: 'ORD20240101000000', 택배사: 'CJ대한통운', 송장번호: '123456789012' },
+                    {
+                        주문번호: "ORD20240101000000",
+                        택배사: "CJ대한통운",
+                        송장번호: "123456789012",
+                    },
                 ];
                 const ws = XLSX.utils.json_to_sheet(headers);
                 const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, '송장업로드양식');
-                XLSX.writeFile(wb, '송장업로드_양식.xlsx');
+                XLSX.utils.book_append_sheet(wb, ws, "송장업로드양식");
+                XLSX.writeFile(wb, "송장업로드_양식.xlsx");
             };
 
             // 파일 선택 후 미리보기
-            window.previewInvoiceFile = async function() {
-                const input = document.getElementById('invoiceFileInput');
-                const preview = document.getElementById('invoicePreview');
-                const uploadBtn = document.getElementById('uploadBtn');
-                const status = document.getElementById('invoiceImportStatus');
-                
+            window.previewInvoiceFile = async function () {
+                const input = document.getElementById("invoiceFileInput");
+                const preview = document.getElementById("invoicePreview");
+                const uploadBtn = document.getElementById("uploadBtn");
+                const status = document.getElementById("invoiceImportStatus");
+
                 if (!input || !input.files || input.files.length === 0) {
-                    preview.style.display = 'none';
+                    preview.style.display = "none";
                     uploadBtn.disabled = true;
                     return;
                 }
 
                 try {
-                    status.textContent = '파일 분석 중...';
-                    preview.style.display = 'none';
-                    
+                    status.textContent = "파일 분석 중...";
+                    preview.style.display = "none";
+
                     const file = input.files[0];
                     const data = await file.arrayBuffer();
                     const workbook = XLSX.read(data);
                     const sheetName = workbook.SheetNames[0];
-                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+                    const rows = XLSX.utils.sheet_to_json(
+                        workbook.Sheets[sheetName],
+                        { defval: "" }
+                    );
 
                     if (rows.length === 0) {
-                        status.textContent = '파일에 데이터가 없습니다.';
+                        status.textContent = "파일에 데이터가 없습니다.";
                         uploadBtn.disabled = true;
                         return;
                     }
 
                     // 데이터 분석
-                    let validRows = 0, invalidRows = 0;
+                    let validRows = 0,
+                        invalidRows = 0;
                     const sampleData = [];
-                    
+
                     for (let i = 0; i < Math.min(rows.length, 5); i++) {
                         const row = rows[i];
-                        const orderNumber = String(row['주문번호'] || '').trim();
-                        const courier = String(row['택배사'] || '').trim();
-                        const invoice = String(row['송장번호'] || '').trim();
-                        
+                        const orderNumber = String(
+                            row["주문번호"] || ""
+                        ).trim();
+                        const courier = String(row["택배사"] || "").trim();
+                        const invoice = String(row["송장번호"] || "").trim();
+
                         if (orderNumber && courier && invoice) {
                             validRows++;
                             if (sampleData.length < 3) {
                                 sampleData.push({
                                     orderNumber: orderNumber,
                                     courier: courier,
-                                    invoice: invoice
+                                    invoice: invoice,
                                 });
                             }
                         } else {
@@ -917,13 +1280,15 @@
                             </div>
                             <div style="font-size:11px; color:#666;">
                         `;
-                        
+
                         sampleData.forEach((item, index) => {
                             previewHTML += `
-                                ${index + 1}. ${item.orderNumber} | ${item.courier} | ${item.invoice}<br>
+                                ${index + 1}. ${item.orderNumber} | ${
+                                item.courier
+                            } | ${item.invoice}<br>
                             `;
                         });
-                        
+
                         previewHTML += `</div>`;
                     }
 
@@ -936,119 +1301,174 @@
                     }
 
                     preview.innerHTML = previewHTML;
-                    preview.style.display = 'block';
-                    
+                    preview.style.display = "block";
+
                     // 업로드 버튼 활성화
                     uploadBtn.disabled = false;
                     status.textContent = `파일 준비 완료: ${rows.length}행 (${validRows}건 유효)`;
-                    
                 } catch (error) {
-                    console.error('파일 분석 오류:', error);
-                    status.textContent = '파일 분석 중 오류가 발생했습니다.';
-                    preview.style.display = 'none';
+                    console.error("파일 분석 오류:", error);
+                    status.textContent = "파일 분석 중 오류가 발생했습니다.";
+                    preview.style.display = "none";
                     uploadBtn.disabled = true;
                 }
             };
 
             // 송장 업로드 처리
-            window.startInvoiceImport = async function() {
-                const input = document.getElementById('invoiceFileInput');
-                const status = document.getElementById('invoiceImportStatus');
+            window.startInvoiceImport = async function () {
+                const input = document.getElementById("invoiceFileInput");
+                const status = document.getElementById("invoiceImportStatus");
                 if (!input || !input.files || input.files.length === 0) {
-                    alert('업로드할 파일을 선택하세요.');
+                    alert("업로드할 파일을 선택하세요.");
                     return;
                 }
                 try {
-                    status.textContent = '처리 중...';
+                    status.textContent = "처리 중...";
                     const file = input.files[0];
                     const data = await file.arrayBuffer();
                     const workbook = XLSX.read(data);
                     const sheetName = workbook.SheetNames[0];
-                    const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+                    const rows = XLSX.utils.sheet_to_json(
+                        workbook.Sheets[sheetName],
+                        { defval: "" }
+                    );
 
                     // rows: [{ 주문번호, 택배사, 송장번호 }]
-                    let updated = 0, notFound = 0, errors = 0, claimWarnings = 0;
+                    let updated = 0,
+                        notFound = 0,
+                        errors = 0,
+                        claimWarnings = 0;
                     const claimWarningOrders = [];
-                    const allSnap = await get(ref(database, 'orders'));
+                    const allSnap = await get(ref(database, "orders"));
                     const all = allSnap.val() || {};
 
                     const orderNumberToId = new Map();
                     Object.entries(all).forEach(([id, o]) => {
-                        if (o && o.orderNumber) orderNumberToId.set(o.orderNumber, id);
+                        if (o && o.orderNumber)
+                            orderNumberToId.set(o.orderNumber, id);
                     });
 
                     for (const row of rows) {
-                        const orderNumber = String(row['주문번호'] || '').trim();
-                        const courier = String(row['택배사'] || '').trim();
-                        const invoice = String(row['송장번호'] || '').trim();
-                        if (!orderNumber || !courier || !invoice) { errors++; continue; }
+                        const orderNumber = String(
+                            row["주문번호"] || ""
+                        ).trim();
+                        const courier = String(row["택배사"] || "").trim();
+                        const invoice = String(row["송장번호"] || "").trim();
+                        if (!orderNumber || !courier || !invoice) {
+                            errors++;
+                            continue;
+                        }
 
                         const orderId = orderNumberToId.get(orderNumber);
-                        if (!orderId) { notFound++; continue; }
+                        if (!orderId) {
+                            notFound++;
+                            continue;
+                        }
 
                         try {
                             const order = all[orderId];
-                            if (!order) { notFound++; continue; }
+                            if (!order) {
+                                notFound++;
+                                continue;
+                            }
 
                             // 클레임 체크: 해당 주문에 대한 교환/반품/취소가 접수/배송중인지 확인
-                            const relatedClaims = Object.values(all).filter(o =>
-                                o && o.existingOrderNumber === order.orderNumber &&
-                                (o.orderType === '교환' || o.orderType === '반품' || o.orderType === '취소') &&
-                                (o.status === '접수' || o.status === '배송중')
+                            const relatedClaims = Object.values(all).filter(
+                                (o) =>
+                                    o &&
+                                    o.existingOrderNumber ===
+                                        order.orderNumber &&
+                                    (o.orderType === "교환" ||
+                                        o.orderType === "반품" ||
+                                        o.orderType === "취소") &&
+                                    (o.status === "접수" ||
+                                        o.status === "배송중")
                             );
 
                             // 송장 정보 업데이트
-                            await set(ref(database, `orders/${orderId}/courier`), courier);
-                            await set(ref(database, `orders/${orderId}/invoiceNumber`), invoice);
-                            
+                            await set(
+                                ref(database, `orders/${orderId}/courier`),
+                                courier
+                            );
+                            await set(
+                                ref(
+                                    database,
+                                    `orders/${orderId}/invoiceNumber`
+                                ),
+                                invoice
+                            );
+
                             // 클레임이 없으면 배송중으로 자동 전환
                             if (relatedClaims.length === 0) {
-                                await set(ref(database, `orders/${orderId}/status`), '배송중');
+                                await set(
+                                    ref(database, `orders/${orderId}/status`),
+                                    "배송중"
+                                );
                                 // 배송 시작 시간 기록 (3일 후 자동 완료용)
-                                await set(ref(database, `orders/${orderId}/shippingStartTime`), Date.now());
+                                await set(
+                                    ref(
+                                        database,
+                                        `orders/${orderId}/shippingStartTime`
+                                    ),
+                                    Date.now()
+                                );
                             } else {
                                 // 클레임이 있으면 경고 누적 (송장 정보는 저장되지만 상태는 그대로)
                                 claimWarnings++;
                                 claimWarningOrders.push(order.orderNumber);
-                                console.warn(`클레임 진행 중: ${order.orderNumber} (${relatedClaims.length}건)`);
+                                console.warn(
+                                    `클레임 진행 중: ${order.orderNumber} (${relatedClaims.length}건)`
+                                );
                             }
-                            
+
                             updated++;
-                        } catch(e) { errors++; }
+                        } catch (e) {
+                            errors++;
+                        }
                     }
 
                     let message = `완료: ${updated}건 업데이트, ${notFound}건 미매칭, ${errors}건 오류`;
-                    
+
                     // 클레임 경고가 있으면 알럿에 포함
                     if (claimWarnings > 0) {
                         message += `\n\n⚠️ 클레임 진행 중인 주문 ${claimWarnings}건은 송장만 등록되고 배송중 처리되지 않았습니다.`;
-                        const sample = claimWarningOrders.slice(0, 5).join(', ');
-                        if (sample) message += `\n예: ${sample}${claimWarningOrders.length > 5 ? ' 외' : ''}`;
+                        const sample = claimWarningOrders
+                            .slice(0, 5)
+                            .join(", ");
+                        if (sample)
+                            message += `\n예: ${sample}${
+                                claimWarningOrders.length > 5 ? " 외" : ""
+                            }`;
                         message += `\n해당 주문의 교환/반품/취소 요청을 먼저 처리해주세요.`;
                     } else {
                         message += `\n\n✅ 정상 주문 ${updated}건은 송장 등록 후 3영업일 후 자동 배송완료 처리됩니다.`;
                     }
-                    
-                    status.textContent = message.split('\n')[0]; // 첫 줄만 status에 표시
+
+                    status.textContent = message.split("\n")[0]; // 첫 줄만 status에 표시
                     alert(message);
                 } catch (e) {
                     console.error(e);
-                    alert('업로드 처리 중 오류가 발생했습니다.');
+                    alert("업로드 처리 중 오류가 발생했습니다.");
                 }
             };
 
             // 페이지네이션 함수들
             function updatePagination() {
-                const totalPages = Math.ceil(allFilteredData.length / itemsPerPage);
+                const totalPages = Math.ceil(
+                    allFilteredData.length / itemsPerPage
+                );
                 const startIndex = (currentPage - 1) * itemsPerPage;
                 const endIndex = startIndex + itemsPerPage;
-                
+
                 // 현재 페이지 데이터만 표시
-                const currentPageData = allFilteredData.slice(startIndex, endIndex);
-                
+                const currentPageData = allFilteredData.slice(
+                    startIndex,
+                    endIndex
+                );
+
                 // 테이블 업데이트
                 ordersTableBody.innerHTML = "";
-                
+
                 if (currentPageData.length === 0) {
                     ordersTableBody.innerHTML =
                         '<tr><td colspan="14" style="text-align: center; padding: 20px;">표시할 주문이 없습니다.</td></tr>';
@@ -1059,28 +1479,33 @@
                     const row = createOrderRow(id, order);
                     ordersTableBody.appendChild(row);
                 });
-                
+
                 // 페이지 정보 표시
                 updatePageInfo(totalPages);
             }
-            
+
             function updatePageInfo(totalPages) {
-                const pageInfo = document.getElementById('pageInfo');
-                const pageNumbers = document.getElementById('pageNumbers');
-                
+                const pageInfo = document.getElementById("pageInfo");
+                const pageNumbers = document.getElementById("pageNumbers");
+
                 if (pageInfo) {
                     pageInfo.innerHTML = `
-                        <span>총 ${allFilteredData.length}건 중 ${(currentPage - 1) * itemsPerPage + 1}-${Math.min(currentPage * itemsPerPage, allFilteredData.length)}건 표시</span>
+                        <span>총 ${allFilteredData.length}건 중 ${
+                        (currentPage - 1) * itemsPerPage + 1
+                    }-${Math.min(
+                        currentPage * itemsPerPage,
+                        allFilteredData.length
+                    )}건 표시</span>
                         <span style="margin-left: 20px;">페이지 ${currentPage} / ${totalPages}</span>
                     `;
                 }
-                
+
                 // 페이지 번호 버튼 생성
                 if (pageNumbers && totalPages > 1) {
-                    let pageButtons = '';
+                    let pageButtons = "";
                     const startPage = Math.max(1, currentPage - 2);
                     const endPage = Math.min(totalPages, currentPage + 2);
-                    
+
                     for (let i = startPage; i <= endPage; i++) {
                         if (i === currentPage) {
                             pageButtons += `<button class="btn btn-primary btn-sm" style="margin: 0 2px;">${i}</button>`;
@@ -1090,33 +1515,35 @@
                     }
                     pageNumbers.innerHTML = pageButtons;
                 } else if (pageNumbers) {
-                    pageNumbers.innerHTML = '';
+                    pageNumbers.innerHTML = "";
                 }
-                
+
                 // 페이지네이션 버튼 활성화/비활성화
                 updatePaginationButtons(totalPages);
             }
-            
+
             function updatePaginationButtons(totalPages) {
-                const firstPage = document.getElementById('firstPage');
-                const prevPage = document.getElementById('prevPage');
-                const nextPage = document.getElementById('nextPage');
-                const lastPage = document.getElementById('lastPage');
-                
+                const firstPage = document.getElementById("firstPage");
+                const prevPage = document.getElementById("prevPage");
+                const nextPage = document.getElementById("nextPage");
+                const lastPage = document.getElementById("lastPage");
+
                 if (firstPage) firstPage.disabled = currentPage === 1;
                 if (prevPage) prevPage.disabled = currentPage === 1;
                 if (nextPage) nextPage.disabled = currentPage === totalPages;
                 if (lastPage) lastPage.disabled = currentPage === totalPages;
             }
-            
+
             function changePage(page) {
-                const totalPages = Math.ceil(allFilteredData.length / itemsPerPage);
+                const totalPages = Math.ceil(
+                    allFilteredData.length / itemsPerPage
+                );
                 if (page >= 1 && page <= totalPages) {
                     currentPage = page;
                     updatePagination();
                 }
             }
-            
+
             function changeItemsPerPage(newItemsPerPage) {
                 itemsPerPage = parseInt(newItemsPerPage);
                 currentPage = 1; // 첫 페이지로 리셋
@@ -1132,19 +1559,16 @@
                 }
 
                 const entries = Object.entries(data);
-                allFilteredData = filterOrdersData(entries)
-                    .sort((a, b) => {
-                        const aTime = a[1]?.createdAt || 0;
-                        const bTime = b[1]?.createdAt || 0;
-                        return bTime - aTime; // 최신순
-                    });
-                
+                allFilteredData = filterOrdersData(entries).sort((a, b) => {
+                    const aTime = a[1]?.createdAt || 0;
+                    const bTime = b[1]?.createdAt || 0;
+                    return bTime - aTime; // 최신순
+                });
+
                 // 페이지네이션 업데이트
                 currentPage = 1; // 첫 페이지로 리셋
                 updatePagination();
             }
-
-
 
             // 주문 행 생성
             function createOrderRow(id, order) {
@@ -1153,14 +1577,18 @@
 
                 row.innerHTML = `
                 <td>
-                    <input type="checkbox" class="order-checkbox" value="${id}" data-status="${order.status}">
+                    <input type="checkbox" class="order-checkbox" value="${id}" data-status="${
+                    order.status
+                }">
                 </td>
                 <td><strong>${order.orderNumber}</strong></td>
                 <td>${orderDate.toLocaleString("ko-KR")}</td>
                 <td>${order.customerName}</td>
                 <td>${order.phone}</td>
-                <td><span class="order-type-badge">${order.orderType || '신규주문'}</span></td>
-                <td>${order.existingOrderNumber || '-'}</td>
+                <td><span class="order-type-badge">${
+                    order.orderType || "신규주문"
+                }</span></td>
+                <td>${order.existingOrderNumber || "-"}</td>
                 <td>${order.product} (${order.quantity}개)</td>
                 <td style="max-width: 150px; word-break: break-all;">${
                     order.address || ""
@@ -1176,8 +1604,12 @@
                     order.status
                 }</span>
                 </td>
-                <td style="max-width: 120px; word-break: break-all;">${order.courier || ''}</td>
-                <td style="max-width: 140px; word-break: break-all;">${order.invoiceNumber || ''}</td>
+                <td style="max-width: 120px; word-break: break-all;">${
+                    order.courier || ""
+                }</td>
+                <td style="max-width: 140px; word-break: break-all;">${
+                    order.invoiceNumber || ""
+                }</td>
                 <td>
                     <select class="status-select" onchange="updateOrderStatus('${id}', this.value)">
                         <option value="접수" ${
@@ -1203,25 +1635,31 @@
             window.updateOrderStatus = async function (orderId, newStatus) {
                 try {
                     // 대상 주문 조회
-                    const orderSnap = await get(ref(database, `orders/${orderId}`));
+                    const orderSnap = await get(
+                        ref(database, `orders/${orderId}`)
+                    );
                     const order = orderSnap.val();
                     if (!order) return;
 
                     // 배송중/배송완료로 변경하는 경우, 연계 클레임(교환/반품/취소) 진행 여부 확인
-                    if (newStatus === '배송중' || newStatus === '배송완료') {
+                    if (newStatus === "배송중" || newStatus === "배송완료") {
                         const allSnap = await get(ref(database, `orders`));
                         const all = allSnap.val() || {};
-                        const relatedClaims = Object.values(all).filter(o =>
-                            o && o.existingOrderNumber === order.orderNumber &&
-                            (o.orderType === '교환' || o.orderType === '반품' || o.orderType === '취소') &&
-                            (o.status === '접수' || o.status === '배송중')
+                        const relatedClaims = Object.values(all).filter(
+                            (o) =>
+                                o &&
+                                o.existingOrderNumber === order.orderNumber &&
+                                (o.orderType === "교환" ||
+                                    o.orderType === "반품" ||
+                                    o.orderType === "취소") &&
+                                (o.status === "접수" || o.status === "배송중")
                         );
 
                         if (relatedClaims.length > 0) {
                             const proceed = confirm(
-                                '새로운 클레임이 존재합니다.\n' +
-                                '해당 주문에 대해 교환/반품/취소 요청이 접수/진행 중일 수 있어요.\n' +
-                                `그래도 '${newStatus}'로 상태를 변경할까요?`
+                                "새로운 클레임이 존재합니다.\n" +
+                                    "해당 주문에 대해 교환/반품/취소 요청이 접수/진행 중일 수 있어요.\n" +
+                                    `그래도 '${newStatus}'로 상태를 변경할까요?`
                             );
                             if (!proceed) return;
                         }
@@ -1231,18 +1669,22 @@
                     const statusRef = ref(database, `orders/${orderId}/status`);
                     await set(statusRef, newStatus);
                 } catch (err) {
-                    console.error('상태 업데이트 오류:', err);
-                    alert('상태 업데이트 중 오류가 발생했습니다.');
+                    console.error("상태 업데이트 오류:", err);
+                    alert("상태 업데이트 중 오류가 발생했습니다.");
                 }
             };
 
             // 통계 업데이트
             function updateStats(data) {
                 if (!data) {
-                    document.getElementById('todayNewOrders').textContent = "0";
-                    document.getElementById('todayExchangeRequests').textContent = "0";
-                    document.getElementById('todayReturnRequests').textContent = "0";
-                    document.getElementById('todayCancelRequests').textContent = "0";
+                    document.getElementById("todayNewOrders").textContent = "0";
+                    document.getElementById(
+                        "todayExchangeRequests"
+                    ).textContent = "0";
+                    document.getElementById("todayReturnRequests").textContent =
+                        "0";
+                    document.getElementById("todayCancelRequests").textContent =
+                        "0";
                     return;
                 }
 
@@ -1258,37 +1700,65 @@
                 });
 
                 // 주문 유형별 통계
-                const newOrders = todayOrders.filter(([id, order]) => order.orderType === '신규주문');
-                const exchangeRequests = todayOrders.filter(([id, order]) => order.orderType === '교환');
-                const returnRequests = todayOrders.filter(([id, order]) => order.orderType === '반품');
-                const cancelRequests = todayOrders.filter(([id, order]) => order.orderType === '취소');
+                const newOrders = todayOrders.filter(
+                    ([id, order]) => order.orderType === "신규주문"
+                );
+                const exchangeRequests = todayOrders.filter(
+                    ([id, order]) => order.orderType === "교환"
+                );
+                const returnRequests = todayOrders.filter(
+                    ([id, order]) => order.orderType === "반품"
+                );
+                const cancelRequests = todayOrders.filter(
+                    ([id, order]) => order.orderType === "취소"
+                );
 
-                document.getElementById('todayNewOrders').textContent = newOrders.length;
-                document.getElementById('todayExchangeRequests').textContent = exchangeRequests.length;
-                document.getElementById('todayReturnRequests').textContent = returnRequests.length;
-                document.getElementById('todayCancelRequests').textContent = cancelRequests.length;
+                document.getElementById("todayNewOrders").textContent =
+                    newOrders.length;
+                document.getElementById("todayExchangeRequests").textContent =
+                    exchangeRequests.length;
+                document.getElementById("todayReturnRequests").textContent =
+                    returnRequests.length;
+                document.getElementById("todayCancelRequests").textContent =
+                    cancelRequests.length;
             }
 
             // 최근 주문 업데이트
             // 최근주문 섹션 제거로 더미 함수 유지
-            function updateRecentOrders(data) { /* no-op */ }
+            function updateRecentOrders(data) {
+                /* no-op */
+            }
 
             // 주문 필터링
             function filterOrdersData(entries) {
-                const statusFilter = document.getElementById("statusFilter").value;
-                const orderTypeFilter = document.getElementById("orderTypeFilter").value;
+                const statusFilter =
+                    document.getElementById("statusFilter").value;
+                const orderTypeFilter =
+                    document.getElementById("orderTypeFilter").value;
                 const dateFilter = document.getElementById("dateFilter").value;
-                const phoneSearch = document.getElementById("phoneSearch").value.toLowerCase();
-                const orderNumberSearch = document.getElementById("orderNumberSearch").value.toLowerCase();
+                const phoneSearch = document
+                    .getElementById("phoneSearch")
+                    .value.toLowerCase();
+                const orderNumberSearch = document
+                    .getElementById("orderNumberSearch")
+                    .value.toLowerCase();
 
                 return entries.filter(([id, order]) => {
                     // 휴대폰번호 검색
-                    if (phoneSearch && !order.phone.toLowerCase().includes(phoneSearch)) {
+                    if (
+                        phoneSearch &&
+                        !order.phone.toLowerCase().includes(phoneSearch)
+                    ) {
                         return false;
                     }
 
                     // 주문번호 검색
-                    if (orderNumberSearch && !order.orderNumber.toLowerCase().includes(orderNumberSearch)) {
+                    if (
+                        orderNumberSearch &&
+                        !order.orderNumber
+                            .toLowerCase()
+                            .includes(orderNumberSearch)
+                    ) {
                         return false;
                     }
 
@@ -1298,7 +1768,10 @@
                     }
 
                     // 주문유형 필터
-                    if (orderTypeFilter && order.orderType !== orderTypeFilter) {
+                    if (
+                        orderTypeFilter &&
+                        order.orderType !== orderTypeFilter
+                    ) {
                         return false;
                     }
 
@@ -1332,122 +1805,138 @@
             window.filterOrders = function () {
                 const ordersRef = ref(database, "orders");
                 const ordersQuery = query(ordersRef, orderByChild("createdAt"));
-                onValue(ordersQuery, (snapshot) => {
-                    const data = snapshot.val();
-                    updateOrdersTable(data);
-                    updateStats(data);
-                    updateRecentOrders(data);
-                }, { onlyOnce: true });
+                onValue(
+                    ordersQuery,
+                    (snapshot) => {
+                        const data = snapshot.val();
+                        updateOrdersTable(data);
+                        updateStats(data);
+                        updateRecentOrders(data);
+                    },
+                    { onlyOnce: true }
+                );
             };
 
             // 새로고침
             window.refreshOrders = function () {
                 // 모든 필터를 기본값으로 설정
-                document.getElementById('orderTypeFilter').value = ''; // 전체 주문유형
-                document.getElementById('statusFilter').value = ''; // 전체 배송상태
-                document.getElementById('dateFilter').value = 'today'; // 오늘
-                document.getElementById('phoneSearch').value = ''; // 검색어 초기화
-                document.getElementById('orderNumberSearch').value = ''; // 검색어 초기화
-                
+                document.getElementById("orderTypeFilter").value = ""; // 전체 주문유형
+                document.getElementById("statusFilter").value = ""; // 전체 배송상태
+                document.getElementById("dateFilter").value = "today"; // 오늘
+                document.getElementById("phoneSearch").value = ""; // 검색어 초기화
+                document.getElementById("orderNumberSearch").value = ""; // 검색어 초기화
+
                 // 주문 데이터 새로고침
                 const ordersRef = ref(database, "orders");
                 const ordersQuery = query(ordersRef, orderByChild("createdAt"));
-                onValue(ordersQuery, (snapshot) => {
-                    const data = snapshot.val();
-                    updateOrdersTable(data);
-                    updateStats(data);
-                    updateRecentOrders(data);
-                }, { onlyOnce: true });
-                
+                onValue(
+                    ordersQuery,
+                    (snapshot) => {
+                        const data = snapshot.val();
+                        updateOrdersTable(data);
+                        updateStats(data);
+                        updateRecentOrders(data);
+                    },
+                    { onlyOnce: true }
+                );
+
                 // 사용자에게 알림
-                alert('새로고침 완료! 기본 필터가 적용되었습니다.');
+                alert("새로고침 완료! 기본 필터가 적용되었습니다.");
             };
 
             // 신규주문 진행중 필터링
-            window.filterNewOrdersInProgress = function() {
+            window.filterNewOrdersInProgress = function () {
                 // 필터 초기화
-                document.getElementById('orderTypeFilter').value = '';
-                document.getElementById('statusFilter').value = '';
-                document.getElementById('dateFilter').value = '';
-                document.getElementById('phoneSearch').value = '';
-                document.getElementById('orderNumberSearch').value = '';
-                
+                document.getElementById("orderTypeFilter").value = "";
+                document.getElementById("statusFilter").value = "";
+                document.getElementById("dateFilter").value = "";
+                document.getElementById("phoneSearch").value = "";
+                document.getElementById("orderNumberSearch").value = "";
+
                 // JavaScript에서 직접 필터링
                 filterNewOrdersInProgressCustom();
-                
+
                 // 사용자에게 알림
-                alert('신규주문 중 접수/배송중 상태인 주문만 표시됩니다.');
+                alert("신규주문 중 접수/배송중 상태인 주문만 표시됩니다.");
             };
 
             // 교환/반품/취소 진행중 필터링
-            window.filterExchangeReturnInProgress = function() {
+            window.filterExchangeReturnInProgress = function () {
                 // 필터 초기화
-                document.getElementById('orderTypeFilter').value = '';
-                document.getElementById('statusFilter').value = '';
-                document.getElementById('dateFilter').value = '';
-                document.getElementById('phoneSearch').value = '';
-                document.getElementById('orderNumberSearch').value = '';
-                
+                document.getElementById("orderTypeFilter").value = "";
+                document.getElementById("statusFilter").value = "";
+                document.getElementById("dateFilter").value = "";
+                document.getElementById("phoneSearch").value = "";
+                document.getElementById("orderNumberSearch").value = "";
+
                 // JavaScript에서 직접 필터링
                 filterExchangeReturnInProgressCustom();
-                
+
                 // 사용자에게 알림
-                alert('교환/반품/취소 중 접수/배송중 상태인 주문만 표시됩니다.');
+                alert(
+                    "교환/반품/취소 중 접수/배송중 상태인 주문만 표시됩니다."
+                );
             };
 
             // 전체 보기 (모든 주문 표시)
-            window.showAllOrders = function() {
+            window.showAllOrders = function () {
                 // 모든 필터 초기화
-                document.getElementById('orderTypeFilter').value = '';
-                document.getElementById('statusFilter').value = '';
-                document.getElementById('dateFilter').value = '';
-                document.getElementById('phoneSearch').value = '';
-                document.getElementById('orderNumberSearch').value = '';
-                
+                document.getElementById("orderTypeFilter").value = "";
+                document.getElementById("statusFilter").value = "";
+                document.getElementById("dateFilter").value = "";
+                document.getElementById("phoneSearch").value = "";
+                document.getElementById("orderNumberSearch").value = "";
+
                 // 전체 주문 데이터 다시 로드
                 const ordersRef = ref(database, "orders");
                 const ordersQuery = query(ordersRef, orderByChild("createdAt"));
-                onValue(ordersQuery, (snapshot) => {
-                    const data = snapshot.val();
-                    updateOrdersTable(data);
-                    updateStats(data);
-                    updateRecentOrders(data);
-                }, { onlyOnce: true });
-                
+                onValue(
+                    ordersQuery,
+                    (snapshot) => {
+                        const data = snapshot.val();
+                        updateOrdersTable(data);
+                        updateStats(data);
+                        updateRecentOrders(data);
+                    },
+                    { onlyOnce: true }
+                );
+
                 // 사용자에게 알림
-                alert('전체 주문이 표시됩니다.');
+                alert("전체 주문이 표시됩니다.");
             };
 
             // 전체 선택/해제
-            window.toggleSelectAll = function() {
-                const selectAll = document.getElementById('selectAll');
-                const checkboxes = document.querySelectorAll('.order-checkbox');
-                
-                checkboxes.forEach(checkbox => {
+            window.toggleSelectAll = function () {
+                const selectAll = document.getElementById("selectAll");
+                const checkboxes = document.querySelectorAll(".order-checkbox");
+
+                checkboxes.forEach((checkbox) => {
                     checkbox.checked = selectAll.checked;
                 });
-                
+
                 updateBulkActions();
             };
 
             // 체크박스 선택 상태 변경 시 일괄 처리 도구 표시/숨김
-            document.addEventListener('change', function(e) {
-                if (e.target.classList.contains('order-checkbox')) {
+            document.addEventListener("change", function (e) {
+                if (e.target.classList.contains("order-checkbox")) {
                     updateBulkActions();
                 }
             });
 
             // 일괄 처리 도구 업데이트
             function updateBulkActions() {
-                const checkboxes = document.querySelectorAll('.order-checkbox:checked');
-                const bulkActions = document.querySelector('.bulk-actions');
-                const selectedCount = document.getElementById('selectedCount');
-                
+                const checkboxes = document.querySelectorAll(
+                    ".order-checkbox:checked"
+                );
+                const bulkActions = document.querySelector(".bulk-actions");
+                const selectedCount = document.getElementById("selectedCount");
+
                 if (checkboxes.length > 0) {
-                    bulkActions.style.display = 'block';
+                    bulkActions.style.display = "block";
                     selectedCount.textContent = `${checkboxes.length}개 선택됨`;
                 } else {
-                    bulkActions.style.display = 'none';
+                    bulkActions.style.display = "none";
                     selectAll.checked = false;
                 }
             }
@@ -1456,197 +1945,271 @@
             function filterNewOrdersInProgressCustom() {
                 const ordersRef = ref(database, "orders");
                 const ordersQuery = query(ordersRef, orderByChild("createdAt"));
-                onValue(ordersQuery, (snapshot) => {
+                onValue(
+                    ordersQuery,
+                    (snapshot) => {
                         const data = snapshot.val();
                         if (!data) {
-                        updateOrdersTable({});
+                            updateOrdersTable({});
                             return;
                         }
 
                         const entries = Object.entries(data);
-                    console.log('전체 주문 데이터:', entries.length, '건');
-                    
-                    const filteredEntries = entries.filter(([id, order]) => {
-                        // 주문유형 필터 (신규주문만)
-                        if (order.orderType !== '신규주문') {
-                            return false;
-                        }
-                        
-                        // 상태 필터 (접수 또는 배송중만)
-                        if (order.status !== '접수' && order.status !== '배송중') {
-                            return false;
-                        }
-                        
-                        console.log('신규주문 진행중 통과:', order.orderType, order.status, order.orderNumber);
-                        return true;
-                    });
-                    
-                    console.log('신규주문 진행중 필터링 결과:', filteredEntries.length, '건');
-                    
-                    // 필터링된 데이터로 테이블 업데이트 (페이지네이션 적용)
-                    const filteredData = {};
-                    filteredEntries.forEach(([id, order]) => {
-                        filteredData[id] = order;
-                    });
-                    
-                    // 페이지네이션 리셋 및 테이블 업데이트
-                    currentPage = 1;
-                    allFilteredData = Object.entries(filteredData);
-                    updatePagination();
-                    updateStats(filteredData);
-                    updateRecentOrders(filteredData);
-                }, { onlyOnce: true });
+                        console.log("전체 주문 데이터:", entries.length, "건");
+
+                        const filteredEntries = entries.filter(
+                            ([id, order]) => {
+                                // 주문유형 필터 (신규주문만)
+                                if (order.orderType !== "신규주문") {
+                                    return false;
+                                }
+
+                                // 상태 필터 (접수 또는 배송중만)
+                                if (
+                                    order.status !== "접수" &&
+                                    order.status !== "배송중"
+                                ) {
+                                    return false;
+                                }
+
+                                console.log(
+                                    "신규주문 진행중 통과:",
+                                    order.orderType,
+                                    order.status,
+                                    order.orderNumber
+                                );
+                                return true;
+                            }
+                        );
+
+                        console.log(
+                            "신규주문 진행중 필터링 결과:",
+                            filteredEntries.length,
+                            "건"
+                        );
+
+                        // 필터링된 데이터로 테이블 업데이트 (페이지네이션 적용)
+                        const filteredData = {};
+                        filteredEntries.forEach(([id, order]) => {
+                            filteredData[id] = order;
+                        });
+
+                        // 페이지네이션 리셋 및 테이블 업데이트
+                        currentPage = 1;
+                        allFilteredData = Object.entries(filteredData);
+                        updatePagination();
+                        updateStats(filteredData);
+                        updateRecentOrders(filteredData);
+                    },
+                    { onlyOnce: true }
+                );
             }
 
             // 교환/반품/취소 진행중 커스텀 필터링
             function filterExchangeReturnInProgressCustom() {
                 const ordersRef = ref(database, "orders");
                 const ordersQuery = query(ordersRef, orderByChild("createdAt"));
-                onValue(ordersQuery, (snapshot) => {
-                    const data = snapshot.val();
-                    if (!data) {
-                        updateOrdersTable({});
-                        return;
-                    }
-                    
-                    const entries = Object.entries(data);
-                    console.log('전체 주문 데이터:', entries.length, '건');
-                    
-                    const filteredEntries = entries.filter(([id, order]) => {
-                        // 주문유형 필터 (교환, 반품, 취소만)
-                        if (order.orderType !== '교환' && order.orderType !== '반품' && order.orderType !== '취소') {
-                            return false;
+                onValue(
+                    ordersQuery,
+                    (snapshot) => {
+                        const data = snapshot.val();
+                        if (!data) {
+                            updateOrdersTable({});
+                            return;
                         }
-                        
-                        // 상태 필터 (접수 또는 배송중만)
-                        if (order.status !== '접수' && order.status !== '배송중') {
-                            return false;
-                        }
-                        
-                        console.log('교환/반품/취소 진행중 통과:', order.orderType, order.status, order.orderNumber);
-                        return true;
-                    });
-                    
-                    console.log('교환/반품/취소 진행중 필터링 결과:', filteredEntries.length, '건');
-                    
-                    // 필터링된 데이터로 테이블 업데이트 (페이지네이션 적용)
-                    const filteredData = {};
-                    filteredEntries.forEach(([id, order]) => {
-                        filteredData[id] = order;
-                    });
-                    
-                    // 페이지네이션 리셋 및 테이블 업데이트
-                    currentPage = 1;
-                    allFilteredData = Object.entries(filteredData);
-                    updatePagination();
-                    updateStats(filteredData);
-                    updateRecentOrders(filteredData);
-                }, { onlyOnce: true });
+
+                        const entries = Object.entries(data);
+                        console.log("전체 주문 데이터:", entries.length, "건");
+
+                        const filteredEntries = entries.filter(
+                            ([id, order]) => {
+                                // 주문유형 필터 (교환, 반품, 취소만)
+                                if (
+                                    order.orderType !== "교환" &&
+                                    order.orderType !== "반품" &&
+                                    order.orderType !== "취소"
+                                ) {
+                                    return false;
+                                }
+
+                                // 상태 필터 (접수 또는 배송중만)
+                                if (
+                                    order.status !== "접수" &&
+                                    order.status !== "배송중"
+                                ) {
+                                    return false;
+                                }
+
+                                console.log(
+                                    "교환/반품/취소 진행중 통과:",
+                                    order.orderType,
+                                    order.status,
+                                    order.orderNumber
+                                );
+                                return true;
+                            }
+                        );
+
+                        console.log(
+                            "교환/반품/취소 진행중 필터링 결과:",
+                            filteredEntries.length,
+                            "건"
+                        );
+
+                        // 필터링된 데이터로 테이블 업데이트 (페이지네이션 적용)
+                        const filteredData = {};
+                        filteredEntries.forEach(([id, order]) => {
+                            filteredData[id] = order;
+                        });
+
+                        // 페이지네이션 리셋 및 테이블 업데이트
+                        currentPage = 1;
+                        allFilteredData = Object.entries(filteredData);
+                        updatePagination();
+                        updateStats(filteredData);
+                        updateRecentOrders(filteredData);
+                    },
+                    { onlyOnce: true }
+                );
             }
 
             // 커스텀 상태 필터링 (여러 상태 동시 지원)
             function filterOrdersWithCustomStatus(allowedStatuses) {
                 const ordersRef = ref(database, "orders");
                 const ordersQuery = query(ordersRef, orderByChild("createdAt"));
-                onValue(ordersQuery, (snapshot) => {
-                    const data = snapshot.val();
-                    if (!data) {
-                        updateOrdersTable({});
-                        return;
-                    }
-                    
-                    const entries = Object.entries(data);
-                    const filteredEntries = entries.filter(([id, order]) => {
-                        // 주문유형 필터 (신규주문)
-                        if (order.orderType !== '신규주문') {
-                            return false;
+                onValue(
+                    ordersQuery,
+                    (snapshot) => {
+                        const data = snapshot.val();
+                        if (!data) {
+                            updateOrdersTable({});
+                            return;
                         }
-                        
-                        // 상태 필터 (접수 또는 배송중)
-                        if (!allowedStatuses.includes(order.status)) {
-                            return false;
-                        }
-                        
-                        return true;
-                    });
-                    
-                    // 필터링된 데이터로 테이블 업데이트
-                    const filteredData = {};
-                    filteredEntries.forEach(([id, order]) => {
-                        filteredData[id] = order;
-                    });
-                    
-                    updateOrdersTable(filteredData);
-                    updateStats(filteredData);
-                    updateRecentOrders(filteredData);
-                }, { onlyOnce: true });
+
+                        const entries = Object.entries(data);
+                        const filteredEntries = entries.filter(
+                            ([id, order]) => {
+                                // 주문유형 필터 (신규주문)
+                                if (order.orderType !== "신규주문") {
+                                    return false;
+                                }
+
+                                // 상태 필터 (접수 또는 배송중)
+                                if (!allowedStatuses.includes(order.status)) {
+                                    return false;
+                                }
+
+                                return true;
+                            }
+                        );
+
+                        // 필터링된 데이터로 테이블 업데이트
+                        const filteredData = {};
+                        filteredEntries.forEach(([id, order]) => {
+                            filteredData[id] = order;
+                        });
+
+                        updateOrdersTable(filteredData);
+                        updateStats(filteredData);
+                        updateRecentOrders(filteredData);
+                    },
+                    { onlyOnce: true }
+                );
             }
 
             // 커스텀 주문유형과 상태 필터링
-            function filterOrdersWithCustomTypeAndStatus(allowedTypes, allowedStatuses) {
+            function filterOrdersWithCustomTypeAndStatus(
+                allowedTypes,
+                allowedStatuses
+            ) {
                 const ordersRef = ref(database, "orders");
                 const ordersQuery = query(ordersRef, orderByChild("createdAt"));
-                onValue(ordersQuery, (snapshot) => {
-                    const data = snapshot.val();
-                    if (!data) {
-                        updateOrdersTable({});
-                        return;
-                    }
-                    
-                    const entries = Object.entries(data);
-                    console.log('전체 주문 데이터:', entries.length, '건');
-                    console.log('허용된 주문유형:', allowedTypes);
-                    console.log('허용된 상태:', allowedStatuses);
-                    
-                    const filteredEntries = entries.filter(([id, order]) => {
-                        // 주문유형 필터 (교환, 반품, 취소)
-                        if (!allowedTypes.includes(order.orderType)) {
-                            console.log('주문유형 필터링 제외:', order.orderType, order.orderNumber);
-                            return false;
+                onValue(
+                    ordersQuery,
+                    (snapshot) => {
+                        const data = snapshot.val();
+                        if (!data) {
+                            updateOrdersTable({});
+                            return;
                         }
-                        
-                        // 상태 필터 (접수 또는 배송중)
-                        if (!allowedStatuses.includes(order.status)) {
-                            console.log('상태 필터링 제외:', order.status, order.orderNumber);
-                            return false;
-                        }
-                        
-                        console.log('필터링 통과:', order.orderType, order.status, order.orderNumber);
-                        return true;
-                    });
-                    
-                    console.log('필터링 결과:', filteredEntries.length, '건');
-                    
-                    // 필터링된 데이터로 테이블 업데이트
-                    const filteredData = {};
-                    filteredEntries.forEach(([id, order]) => {
-                        filteredData[id] = order;
-                    });
-                    
-                    updateOrdersTable(filteredData);
-                    updateStats(filteredData);
-                    updateRecentOrders(filteredData);
-                }, { onlyOnce: true });
+
+                        const entries = Object.entries(data);
+                        console.log("전체 주문 데이터:", entries.length, "건");
+                        console.log("허용된 주문유형:", allowedTypes);
+                        console.log("허용된 상태:", allowedStatuses);
+
+                        const filteredEntries = entries.filter(
+                            ([id, order]) => {
+                                // 주문유형 필터 (교환, 반품, 취소)
+                                if (!allowedTypes.includes(order.orderType)) {
+                                    console.log(
+                                        "주문유형 필터링 제외:",
+                                        order.orderType,
+                                        order.orderNumber
+                                    );
+                                    return false;
+                                }
+
+                                // 상태 필터 (접수 또는 배송중)
+                                if (!allowedStatuses.includes(order.status)) {
+                                    console.log(
+                                        "상태 필터링 제외:",
+                                        order.status,
+                                        order.orderNumber
+                                    );
+                                    return false;
+                                }
+
+                                console.log(
+                                    "필터링 통과:",
+                                    order.orderType,
+                                    order.status,
+                                    order.orderNumber
+                                );
+                                return true;
+                            }
+                        );
+
+                        console.log(
+                            "필터링 결과:",
+                            filteredEntries.length,
+                            "건"
+                        );
+
+                        // 필터링된 데이터로 테이블 업데이트
+                        const filteredData = {};
+                        filteredEntries.forEach(([id, order]) => {
+                            filteredData[id] = order;
+                        });
+
+                        updateOrdersTable(filteredData);
+                        updateStats(filteredData);
+                        updateRecentOrders(filteredData);
+                    },
+                    { onlyOnce: true }
+                );
             }
 
             // 일괄 상태 업데이트
-            window.bulkUpdateStatus = async function(newStatus) {
-                const checkboxes = document.querySelectorAll('.order-checkbox:checked');
-                
+            window.bulkUpdateStatus = async function (newStatus) {
+                const checkboxes = document.querySelectorAll(
+                    ".order-checkbox:checked"
+                );
+
                 if (checkboxes.length === 0) {
-                    alert('선택된 주문이 없습니다.');
+                    alert("선택된 주문이 없습니다.");
                     return;
                 }
-                
+
                 const confirmMessage = `선택된 ${checkboxes.length}개 주문의 상태를 '${newStatus}'로 변경하시겠습니까?`;
                 if (!confirm(confirmMessage)) {
                     return;
                 }
-                
+
                 // 모든 주문을 한 번만 로드
                 const allSnap = await get(ref(database, `orders`));
                 const all = allSnap.val() || {};
-                
+
                 // 선택된 주문들의 상세 수집
                 const selectedOrders = [];
                 for (const checkbox of checkboxes) {
@@ -1654,57 +2217,77 @@
                     const order = all[orderId];
                     if (order) selectedOrders.push({ orderId, order });
                 }
-                
+
                 // 클레임 감지 (배송중/배송완료 처리 시만 의미 있음)
                 let claimAffected = [];
-                if (newStatus === '배송중' || newStatus === '배송완료') {
+                if (newStatus === "배송중" || newStatus === "배송완료") {
                     claimAffected = selectedOrders.filter(({ order }) => {
-                        return Object.values(all).some(o =>
-                            o && o.existingOrderNumber === order.orderNumber &&
-                            (o.orderType === '교환' || o.orderType === '반품' || o.orderType === '취소') &&
-                            (o.status === '접수' || o.status === '배송중')
+                        return Object.values(all).some(
+                            (o) =>
+                                o &&
+                                o.existingOrderNumber === order.orderNumber &&
+                                (o.orderType === "교환" ||
+                                    o.orderType === "반품" ||
+                                    o.orderType === "취소") &&
+                                (o.status === "접수" || o.status === "배송중")
                         );
                     });
                 }
-                
+
                 if (claimAffected.length > 0) {
-                    const sample = claimAffected.slice(0, 5).map(v => v.order.orderNumber).join(', ');
+                    const sample = claimAffected
+                        .slice(0, 5)
+                        .map((v) => v.order.orderNumber)
+                        .join(", ");
                     const proceed = confirm(
-                        '새로운 클레임이 존재합니다.\n' +
-                        '선택된 주문 중 일부는 교환/반품/취소 요청이 접수/진행 중이에요.\n' +
-                        `해당 주문은 스킵하고 나머지만 '${newStatus}'로 변경할까요?` +
-                        (sample ? `\n예: ${sample}${claimAffected.length > 5 ? ' 외' : ''}` : '')
+                        "새로운 클레임이 존재합니다.\n" +
+                            "선택된 주문 중 일부는 교환/반품/취소 요청이 접수/진행 중이에요.\n" +
+                            `해당 주문은 스킵하고 나머지만 '${newStatus}'로 변경할까요?` +
+                            (sample
+                                ? `\n예: ${sample}${
+                                      claimAffected.length > 5 ? " 외" : ""
+                                  }`
+                                : "")
                     );
                     if (!proceed) return;
                 }
-                
+
                 let successCount = 0;
                 let skippedCount = 0;
                 let errorCount = 0;
-                
+
                 for (const { orderId, order } of selectedOrders) {
                     // 클레임 영향 주문은 스킵
-                    const isClaimed = claimAffected.some(v => v.orderId === orderId);
-                    if (isClaimed) { skippedCount++; continue; }
+                    const isClaimed = claimAffected.some(
+                        (v) => v.orderId === orderId
+                    );
+                    if (isClaimed) {
+                        skippedCount++;
+                        continue;
+                    }
                     try {
-                        const statusRef = ref(database, `orders/${orderId}/status`);
+                        const statusRef = ref(
+                            database,
+                            `orders/${orderId}/status`
+                        );
                         await set(statusRef, newStatus);
                         successCount++;
                     } catch (error) {
-                        console.error('상태 업데이트 오류:', error);
+                        console.error("상태 업데이트 오류:", error);
                         errorCount++;
                     }
                 }
-                
+
                 // 체크박스 선택 해제
-                checkboxes.forEach(checkbox => checkbox.checked = false);
-                const selectAll = document.getElementById('selectAll');
+                checkboxes.forEach((checkbox) => (checkbox.checked = false));
+                const selectAll = document.getElementById("selectAll");
                 if (selectAll) selectAll.checked = false;
                 updateBulkActions();
-                
+
                 // 결과 알림
                 let message = `${successCount}개 상태 변경 완료`;
-                if (skippedCount > 0) message += `\n${skippedCount}개는 클레임 진행 중으로 스킵됨`;
+                if (skippedCount > 0)
+                    message += `\n${skippedCount}개는 클레임 진행 중으로 스킵됨`;
                 if (errorCount > 0) message += `\n${errorCount}개 실패`;
                 alert(message);
             };
@@ -1712,11 +2295,11 @@
             // 7일이 지난 주문 자동 삭제
             async function deleteOldOrders(data) {
                 if (!data) return;
-                
-                const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000); // 7일 전
+
+                const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000; // 7일 전
                 const entries = Object.entries(data);
                 let deletedCount = 0;
-                
+
                 for (const [id, order] of entries) {
                     if (order.createdAt && order.createdAt < sevenDaysAgo) {
                         try {
@@ -1724,13 +2307,15 @@
                             await set(orderRef, null); // 삭제
                             deletedCount++;
                         } catch (error) {
-                            console.error('주문 삭제 오류:', error);
+                            console.error("주문 삭제 오류:", error);
                         }
                     }
                 }
-                
+
                 if (deletedCount > 0) {
-                    console.log(`${deletedCount}개의 오래된 주문이 삭제되었습니다.`);
+                    console.log(
+                        `${deletedCount}개의 오래된 주문이 삭제되었습니다.`
+                    );
                 }
             }
 
@@ -1739,129 +2324,164 @@
                 const day = date.getDay();
                 // 주말 제외 (0: 일요일, 6: 토요일)
                 if (day === 0 || day === 6) return false;
-                
+
                 // 한국 공휴일 체크 (주요 공휴일만)
                 const month = date.getMonth() + 1;
                 const dayOfMonth = date.getDate();
-                
+
                 // 신정, 설날, 삼일절, 어린이날, 부처님오신날, 현충일, 광복절, 개천절, 한글날, 성탄절
                 const holidays = [
-                    { month: 1, day: 1 },   // 신정
-                    { month: 3, day: 1 },   // 삼일절
-                    { month: 5, day: 5 },   // 어린이날
-                    { month: 6, day: 6 },   // 현충일
-                    { month: 8, day: 15 },  // 광복절
-                    { month: 10, day: 3 },  // 개천절
-                    { month: 10, day: 9 },  // 한글날
-                    { month: 12, day: 25 }  // 성탄절
+                    { month: 1, day: 1 }, // 신정
+                    { month: 3, day: 1 }, // 삼일절
+                    { month: 5, day: 5 }, // 어린이날
+                    { month: 6, day: 6 }, // 현충일
+                    { month: 8, day: 15 }, // 광복절
+                    { month: 10, day: 3 }, // 개천절
+                    { month: 10, day: 9 }, // 한글날
+                    { month: 12, day: 25 }, // 성탄절
                 ];
-                
+
                 // 설날과 추석은 음력이라 복잡하므로 간단히 처리 (추후 개선 가능)
                 // 여기서는 주요 양력 공휴일만 체크
-                
-                return !holidays.some(holiday => holiday.month === month && holiday.day === dayOfMonth);
+
+                return !holidays.some(
+                    (holiday) =>
+                        holiday.month === month && holiday.day === dayOfMonth
+                );
             }
 
             // 영업일 기준으로 날짜 계산
             function addBusinessDays(startDate, businessDays) {
                 let currentDate = new Date(startDate);
                 let addedDays = 0;
-                
+
                 while (addedDays < businessDays) {
                     currentDate.setDate(currentDate.getDate() + 1);
                     if (isBusinessDay(currentDate)) {
                         addedDays++;
                     }
                 }
-                
+
                 return currentDate;
             }
 
             // 3영업일이 지난 배송중 주문 자동 완료 처리
             async function autoCompleteShippedOrders(data) {
                 if (!data) return;
-                
+
                 const now = new Date();
                 let completedCount = 0;
-                
+
                 for (const [id, order] of Object.entries(data)) {
                     // 배송중 상태이고 배송 시작 시간이 있는 주문
-                    if (order.status === '배송중' && order.shippingStartTime) {
-                        const shippingStartDate = new Date(order.shippingStartTime);
-                        const expectedCompletionDate = addBusinessDays(shippingStartDate, 3);
-                        
+                    if (order.status === "배송중" && order.shippingStartTime) {
+                        const shippingStartDate = new Date(
+                            order.shippingStartTime
+                        );
+                        const expectedCompletionDate = addBusinessDays(
+                            shippingStartDate,
+                            3
+                        );
+
                         // 3영업일이 지났는지 확인
                         if (now >= expectedCompletionDate) {
                             try {
                                 // 배송완료로 상태 변경
-                                await set(ref(database, `orders/${id}/status`), '배송완료');
+                                await set(
+                                    ref(database, `orders/${id}/status`),
+                                    "배송완료"
+                                );
                                 // 자동 완료 시간 기록
-                                await set(ref(database, `orders/${id}/autoCompletedTime`), Date.now());
+                                await set(
+                                    ref(
+                                        database,
+                                        `orders/${id}/autoCompletedTime`
+                                    ),
+                                    Date.now()
+                                );
                                 completedCount++;
-                                
-                                console.log(`주문 ${order.orderNumber}이(가) 3영업일 후 자동으로 배송완료 처리되었습니다.`);
+
+                                console.log(
+                                    `주문 ${order.orderNumber}이(가) 3영업일 후 자동으로 배송완료 처리되었습니다.`
+                                );
                             } catch (error) {
-                                console.error(`자동 배송완료 처리 오류 (${id}):`, error);
+                                console.error(
+                                    `자동 배송완료 처리 오류 (${id}):`,
+                                    error
+                                );
                             }
                         }
                     }
                 }
-                
+
                 if (completedCount > 0) {
-                    console.log(`${completedCount}개의 배송중 주문이 3영업일 후 자동으로 배송완료 처리되었습니다.`);
+                    console.log(
+                        `${completedCount}개의 배송중 주문이 3영업일 후 자동으로 배송완료 처리되었습니다.`
+                    );
                 }
             }
 
             // AI 제품 매칭용 Excel 내보내기 (배송상태까지)
             window.exportToExcelAI = function () {
                 // 로딩 표시
-                const exportBtn = document.querySelector('button[onclick="exportToExcelAI()"]');
+                const exportBtn = document.querySelector(
+                    'button[onclick="exportToExcelAI()"]'
+                );
                 const originalText = exportBtn.innerHTML;
                 exportBtn.disabled = true;
-                exportBtn.innerHTML = '<svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 처리중...';
-                
+                exportBtn.innerHTML =
+                    '<svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 처리중...';
+
                 try {
                     // 필터링된 전체 데이터 사용 (페이지네이션 무관)
                     if (!allFilteredData || allFilteredData.length === 0) {
                         alert("내보낼 주문 데이터가 없습니다.");
                         return;
                     }
-                    
+
                     // 필터링된 전체 데이터 수집 (AI용 - 배송상태까지만)
                     const filteredData = [];
                     let processedCount = 0;
                     const totalCount = allFilteredData.length;
-                    
+
                     allFilteredData.forEach(([id, order]) => {
                         processedCount++;
-                        
+
                         // 1000건마다 진행률 업데이트
                         if (processedCount % 1000 === 0) {
-                            const progress = Math.round((processedCount / totalCount) * 100);
+                            const progress = Math.round(
+                                (processedCount / totalCount) * 100
+                            );
                             exportBtn.innerHTML = `<svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ${progress}%`;
                         }
-                        
+
                         // 주문 데이터를 Excel 형식으로 변환 (AI용)
                         filteredData.push({
-                            주문번호: order.orderNumber || '',
-                            주문시간: order.createdAt ? new Date(order.createdAt).toLocaleString("ko-KR") : '',
-                            입금자명: order.customerName || '',
-                            연락처: order.phone || '',
-                            주문유형: order.orderType || '신규주문',
-                            기존주문번호: order.existingOrderNumber || '-',
-                            구매제품: `${order.product || ''} (${order.quantity || 0}개)`,
-                            주소: order.address || '',
-                            상세주소: order.detailAddress || '',
-                            배송메세지: order.memo || '',
-                            배송상태: order.status || ''
+                            주문번호: order.orderNumber || "",
+                            주문시간: order.createdAt
+                                ? new Date(order.createdAt).toLocaleString(
+                                      "ko-KR"
+                                  )
+                                : "",
+                            입금자명: order.customerName || "",
+                            연락처: order.phone || "",
+                            주문유형: order.orderType || "신규주문",
+                            기존주문번호: order.existingOrderNumber || "-",
+                            구매제품: `${order.product || ""} (${
+                                order.quantity || 0
+                            }개)`,
+                            주소: order.address || "",
+                            상세주소: order.detailAddress || "",
+                            배송메세지: order.memo || "",
+                            배송상태: order.status || "",
                         });
                     });
-                    
+
                     // 데이터 개수 확인
                     if (filteredData.length > 10000) {
                         const confirm = window.confirm(
                             `총 ${filteredData.length.toLocaleString()}건의 데이터를 내보냅니다.\n` +
-                            `처리 시간이 오래 걸릴 수 있습니다.\n계속하시겠습니까?`
+                                `처리 시간이 오래 걸릴 수 있습니다.\n계속하시겠습니까?`
                         );
                         if (!confirm) {
                             return;
@@ -1873,12 +2493,15 @@
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, "주문목록_AI용");
 
-                    const fileName = `주문목록_AI용_${new Date().toISOString().split("T")[0]}_${filteredData.length}건.xlsx`;
+                    const fileName = `주문목록_AI용_${
+                        new Date().toISOString().split("T")[0]
+                    }_${filteredData.length}건.xlsx`;
                     XLSX.writeFile(wb, fileName);
-                    
+
                     // 완료 메시지
-                    alert(`AI용 Excel 파일이 생성되었습니다.\n총 ${filteredData.length.toLocaleString()}건의 데이터가 포함되었습니다.`);
-                    
+                    alert(
+                        `AI용 Excel 파일이 생성되었습니다.\n총 ${filteredData.length.toLocaleString()}건의 데이터가 포함되었습니다.`
+                    );
                 } catch (error) {
                     console.error("AI용 Excel 내보내기 오류:", error);
                     alert("AI용 Excel 내보내기 중 오류가 발생했습니다.");
@@ -1892,55 +2515,66 @@
             // 모든 정보 Excel 내보내기 (택배사/송장번호/작업까지 모두)
             window.exportToExcelFull = function () {
                 // 로딩 표시
-                const exportBtn = document.querySelector('button[onclick="exportToExcelFull()"]');
+                const exportBtn = document.querySelector(
+                    'button[onclick="exportToExcelFull()"]'
+                );
                 const originalText = exportBtn.innerHTML;
                 exportBtn.disabled = true;
-                exportBtn.innerHTML = '<svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 처리중...';
-                
+                exportBtn.innerHTML =
+                    '<svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> 처리중...';
+
                 try {
                     // 필터링된 전체 데이터 사용 (페이지네이션 무관)
                     if (!allFilteredData || allFilteredData.length === 0) {
                         alert("내보낼 주문 데이터가 없습니다.");
                         return;
                     }
-                    
+
                     // 필터링된 전체 데이터 수집 (전체 정보)
                     const filteredData = [];
                     let processedCount = 0;
                     const totalCount = allFilteredData.length;
-                    
+
                     allFilteredData.forEach(([id, order]) => {
                         processedCount++;
-                        
+
                         // 1000건마다 진행률 업데이트
                         if (processedCount % 1000 === 0) {
-                            const progress = Math.round((processedCount / totalCount) * 100);
+                            const progress = Math.round(
+                                (processedCount / totalCount) * 100
+                            );
                             exportBtn.innerHTML = `<svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ${progress}%`;
                         }
-                        
+
                         // 주문 데이터를 Excel 형식으로 변환 (전체 정보)
                         filteredData.push({
-                            주문번호: order.orderNumber || '',
-                            주문시간: order.createdAt ? new Date(order.createdAt).toLocaleString("ko-KR") : '',
-                            입금자명: order.customerName || '',
-                            연락처: order.phone || '',
-                            주문유형: order.orderType || '신규주문',
-                            기존주문번호: order.existingOrderNumber || '-',
-                            구매제품: `${order.product || ''} (${order.quantity || 0}개)`,
-                            주소: order.address || '',
-                            상세주소: order.detailAddress || '',
-                            배송메세지: order.memo || '',
-                            배송상태: order.status || '',
-                            택배사: order.courier || '-',
-                            송장번호: order.invoiceNumber || '-'
+                            주문번호: order.orderNumber || "",
+                            주문시간: order.createdAt
+                                ? new Date(order.createdAt).toLocaleString(
+                                      "ko-KR"
+                                  )
+                                : "",
+                            입금자명: order.customerName || "",
+                            연락처: order.phone || "",
+                            주문유형: order.orderType || "신규주문",
+                            기존주문번호: order.existingOrderNumber || "-",
+                            구매제품: `${order.product || ""} (${
+                                order.quantity || 0
+                            }개)`,
+                            주소: order.address || "",
+                            상세주소: order.detailAddress || "",
+                            배송메세지: order.memo || "",
+                            배송상태: order.status || "",
+                            택배사: order.courier || "-",
+                            송장번호: order.invoiceNumber || "-",
                         });
                     });
-                    
+
                     // 데이터 개수 확인
                     if (filteredData.length > 10000) {
                         const confirm = window.confirm(
                             `총 ${filteredData.length.toLocaleString()}건의 데이터를 내보냅니다.\n` +
-                            `처리 시간이 오래 걸릴 수 있습니다.\n계속하시겠습니까?`
+                                `처리 시간이 오래 걸릴 수 있습니다.\n계속하시겠습니까?`
                         );
                         if (!confirm) {
                             return;
@@ -1952,12 +2586,15 @@
                     const wb = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(wb, ws, "주문목록_전체");
 
-                    const fileName = `주문목록_전체_${new Date().toISOString().split("T")[0]}_${filteredData.length}건.xlsx`;
+                    const fileName = `주문목록_전체_${
+                        new Date().toISOString().split("T")[0]
+                    }_${filteredData.length}건.xlsx`;
                     XLSX.writeFile(wb, fileName);
-                    
+
                     // 완료 메시지
-                    alert(`전체 Excel 파일이 생성되었습니다.\n총 ${filteredData.length.toLocaleString()}건의 데이터가 포함되었습니다.`);
-                    
+                    alert(
+                        `전체 Excel 파일이 생성되었습니다.\n총 ${filteredData.length.toLocaleString()}건의 데이터가 포함되었습니다.`
+                    );
                 } catch (error) {
                     console.error("전체 Excel 내보내기 오류:", error);
                     alert("전체 Excel 내보내기 중 오류가 발생했습니다.");
