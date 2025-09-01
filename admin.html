@@ -1355,19 +1355,19 @@
                         }
                         
                         const cells = row.querySelectorAll('td');
-                        if (cells.length >= 11) {
+                        if (cells.length >= 12) { // 체크박스 포함 12개 컬럼
                             filteredData.push({
-                                주문번호: cells[0].textContent.trim(),
-                                주문시간: cells[1].textContent.trim(),
-                                입금자명: cells[2].textContent.trim(),
-                                연락처: cells[3].textContent.trim(),
-                                주문유형: cells[4].textContent.trim(),
-                                기존주문번호: cells[5].textContent.trim(),
-                                구매제품: cells[6].textContent.trim(),
-                                주소: cells[7].textContent.trim(),
-                                상세주소: cells[8].textContent.trim(),
-                                배송메세지: cells[9].textContent.trim(),
-                                배송상태: cells[10].textContent.trim()
+                                주문번호: cells[1].textContent.trim(),      // 체크박스 다음 컬럼
+                                주문시간: cells[2].textContent.trim(),
+                                입금자명: cells[3].textContent.trim(),
+                                연락처: cells[4].textContent.trim(),
+                                주문유형: cells[5].textContent.trim(),
+                                기존주문번호: cells[6].textContent.trim(),
+                                구매제품: cells[7].textContent.trim(),
+                                주소: cells[8].textContent.trim(),
+                                상세주소: cells[9].textContent.trim(),
+                                배송메세지: cells[10].textContent.trim(),
+                                배송상태: cells[11].textContent.trim()
                             });
                         }
                     });
