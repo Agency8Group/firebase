@@ -722,6 +722,7 @@
                 set,
                 query,
                 orderByChild,
+                get,
             } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
 
             // Your web app's Firebase configuration
@@ -953,10 +954,41 @@
                 return row;
             }
 
-            // 주문 상태 업데이트
-            window.updateOrderStatus = function (orderId, newStatus) {
-                const orderRef = ref(database, `orders/${orderId}/status`);
-                set(orderRef, newStatus);
+            // 주문 상태 업데이트 (클레임 사전 확인 포함)
+            window.updateOrderStatus = async function (orderId, newStatus) {
+                try {
+                    // 대상 주문 조회
+                    const orderSnap = await get(ref(database, `orders/${orderId}`));
+                    const order = orderSnap.val();
+                    if (!order) return;
+
+                    // 배송중/배송완료로 변경하는 경우, 연계 클레임(교환/반품/취소) 진행 여부 확인
+                    if (newStatus === '배송중' || newStatus === '배송완료') {
+                        const allSnap = await get(ref(database, `orders`));
+                        const all = allSnap.val() || {};
+                        const relatedClaims = Object.values(all).filter(o =>
+                            o && o.existingOrderNumber === order.orderNumber &&
+                            (o.orderType === '교환' || o.orderType === '반품' || o.orderType === '취소') &&
+                            (o.status === '접수' || o.status === '배송중')
+                        );
+
+                        if (relatedClaims.length > 0) {
+                            const proceed = confirm(
+                                '새로운 클레임이 존재합니다.\n' +
+                                '해당 주문에 대해 교환/반품/취소 요청이 접수/진행 중일 수 있어요.\n' +
+                                `그래도 '${newStatus}'로 상태를 변경할까요?`
+                            );
+                            if (!proceed) return;
+                        }
+                    }
+
+                    // 상태 업데이트 실행
+                    const statusRef = ref(database, `orders/${orderId}/status`);
+                    await set(statusRef, newStatus);
+                } catch (err) {
+                    console.error('상태 업데이트 오류:', err);
+                    alert('상태 업데이트 중 오류가 발생했습니다.');
+                }
             };
 
             // 통계 업데이트
@@ -1375,7 +1407,7 @@
             }
 
             // 일괄 상태 업데이트
-            window.bulkUpdateStatus = function(newStatus) {
+            window.bulkUpdateStatus = async function(newStatus) {
                 const checkboxes = document.querySelectorAll('.order-checkbox:checked');
                 
                 if (checkboxes.length === 0) {
@@ -1388,31 +1420,70 @@
                     return;
                 }
                 
+                // 모든 주문을 한 번만 로드
+                const allSnap = await get(ref(database, `orders`));
+                const all = allSnap.val() || {};
+                
+                // 선택된 주문들의 상세 수집
+                const selectedOrders = [];
+                for (const checkbox of checkboxes) {
+                    const orderId = checkbox.value;
+                    const order = all[orderId];
+                    if (order) selectedOrders.push({ orderId, order });
+                }
+                
+                // 클레임 감지 (배송중/배송완료 처리 시만 의미 있음)
+                let claimAffected = [];
+                if (newStatus === '배송중' || newStatus === '배송완료') {
+                    claimAffected = selectedOrders.filter(({ order }) => {
+                        return Object.values(all).some(o =>
+                            o && o.existingOrderNumber === order.orderNumber &&
+                            (o.orderType === '교환' || o.orderType === '반품' || o.orderType === '취소') &&
+                            (o.status === '접수' || o.status === '배송중')
+                        );
+                    });
+                }
+                
+                if (claimAffected.length > 0) {
+                    const sample = claimAffected.slice(0, 5).map(v => v.order.orderNumber).join(', ');
+                    const proceed = confirm(
+                        '새로운 클레임이 존재합니다.\n' +
+                        '선택된 주문 중 일부는 교환/반품/취소 요청이 접수/진행 중이에요.\n' +
+                        `해당 주문은 스킵하고 나머지만 '${newStatus}'로 변경할까요?` +
+                        (sample ? `\n예: ${sample}${claimAffected.length > 5 ? ' 외' : ''}` : '')
+                    );
+                    if (!proceed) return;
+                }
+                
                 let successCount = 0;
+                let skippedCount = 0;
                 let errorCount = 0;
                 
-                checkboxes.forEach(checkbox => {
-                    const orderId = checkbox.value;
+                for (const { orderId, order } of selectedOrders) {
+                    // 클레임 영향 주문은 스킵
+                    const isClaimed = claimAffected.some(v => v.orderId === orderId);
+                    if (isClaimed) { skippedCount++; continue; }
                     try {
-                        updateOrderStatus(orderId, newStatus);
+                        const statusRef = ref(database, `orders/${orderId}/status`);
+                        await set(statusRef, newStatus);
                         successCount++;
                     } catch (error) {
                         console.error('상태 업데이트 오류:', error);
                         errorCount++;
                     }
-                });
+                }
                 
                 // 체크박스 선택 해제
                 checkboxes.forEach(checkbox => checkbox.checked = false);
-                selectAll.checked = false;
+                const selectAll = document.getElementById('selectAll');
+                if (selectAll) selectAll.checked = false;
                 updateBulkActions();
                 
                 // 결과 알림
-                if (errorCount === 0) {
-                    alert(`${successCount}개 주문의 상태가 '${newStatus}'로 변경되었습니다.`);
-                } else {
-                    alert(`${successCount}개 성공, ${errorCount}개 실패했습니다.`);
-                }
+                let message = `${successCount}개 상태 변경 완료`;
+                if (skippedCount > 0) message += `\n${skippedCount}개는 클레임 진행 중으로 스킵됨`;
+                if (errorCount > 0) message += `\n${errorCount}개 실패`;
+                alert(message);
             };
 
             // 7일이 지난 주문 자동 삭제
