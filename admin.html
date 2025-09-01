@@ -540,6 +540,9 @@
                     <button class="btn btn-info" onclick="filterExchangeReturnInProgress()">
                         <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg> 교환/반품/취소 진행중
                     </button>
+                    <button class="btn btn-secondary" onclick="showAllOrders()">
+                        <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg> 전체 보기
+                    </button>
                     <button class="btn btn-success" onclick="exportToExcel()">
                         <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg> Excel 내보내기
                     </button>
@@ -607,6 +610,9 @@
                                 <option value="today" selected>오늘</option>
                                 <option value="week">이번 주</option>
                             </select>
+                            <button class="btn btn-primary btn-sm" onclick="refreshOrders()">
+                                <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg> 새로고침
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -937,11 +943,21 @@
                 onValue(ordersQuery, (snapshot) => {
                     const data = snapshot.val();
                     updateOrdersTable(data);
-                });
+                    updateStats(data);
+                    updateRecentOrders(data);
+                }, { onlyOnce: true });
             };
 
             // 새로고침
             window.refreshOrders = function () {
+                // 모든 필터를 기본값으로 설정
+                document.getElementById('orderTypeFilter').value = ''; // 전체 주문유형
+                document.getElementById('statusFilter').value = ''; // 전체 배송상태
+                document.getElementById('dateFilter').value = 'today'; // 오늘
+                document.getElementById('phoneSearch').value = ''; // 검색어 초기화
+                document.getElementById('orderNumberSearch').value = ''; // 검색어 초기화
+                
+                // 주문 데이터 새로고침
                 const ordersRef = ref(database, "orders");
                 const ordersQuery = query(ordersRef, orderByChild("createdAt"));
                 onValue(ordersQuery, (snapshot) => {
@@ -949,7 +965,10 @@
                     updateOrdersTable(data);
                     updateStats(data);
                     updateRecentOrders(data);
-                });
+                }, { onlyOnce: true });
+                
+                // 사용자에게 알림
+                alert('새로고침 완료! 기본 필터가 적용되었습니다.');
             };
 
             // 신규주문 진행중 필터링
@@ -982,6 +1001,29 @@
                 
                 // 사용자에게 알림
                 alert('교환/반품/취소 중 접수/배송중 상태인 주문만 표시됩니다.');
+            };
+
+            // 전체 보기 (모든 주문 표시)
+            window.showAllOrders = function() {
+                // 모든 필터 초기화
+                document.getElementById('orderTypeFilter').value = '';
+                document.getElementById('statusFilter').value = '';
+                document.getElementById('dateFilter').value = '';
+                document.getElementById('phoneSearch').value = '';
+                document.getElementById('orderNumberSearch').value = '';
+                
+                // 전체 주문 데이터 다시 로드
+                const ordersRef = ref(database, "orders");
+                const ordersQuery = query(ordersRef, orderByChild("createdAt"));
+                onValue(ordersQuery, (snapshot) => {
+                    const data = snapshot.val();
+                    updateOrdersTable(data);
+                    updateStats(data);
+                    updateRecentOrders(data);
+                }, { onlyOnce: true });
+                
+                // 사용자에게 알림
+                alert('전체 주문이 표시됩니다.');
             };
 
             // 전체 선택/해제
