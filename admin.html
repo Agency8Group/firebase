@@ -931,7 +931,8 @@
                                 onchange="filterOrders()"
                             >
                                 <option value="">전체 기간</option>
-                                <option value="today" selected>오늘</option>
+                                <option value="recent3days" selected>최근 3일</option>
+                                <option value="today">오늘</option>
                                 <option value="week">이번 주</option>
                             </select>
                             <select
@@ -1925,6 +1926,11 @@
                         const now = new Date();
 
                         switch (dateFilter) {
+                            case "recent3days":
+                                const threeDaysAgo = new Date(now);
+                                threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+                                return orderDate >= threeDaysAgo;
+                                
                             case "today":
                                 const today = new Date(now);
                                 today.setHours(0, 0, 0, 0);
@@ -1966,7 +1972,7 @@
                 // 모든 필터를 기본값으로 설정
                 document.getElementById("orderTypeFilter").value = ""; // 전체 주문유형
                 document.getElementById("statusFilter").value = ""; // 전체 배송상태
-                document.getElementById("dateFilter").value = "today"; // 오늘
+                document.getElementById("dateFilter").value = "recent3days"; // 최근 3일
                 document.getElementById("phoneSearch").value = ""; // 검색어 초기화
                 document.getElementById("orderNumberSearch").value = ""; // 검색어 초기화
 
@@ -1993,7 +1999,7 @@
                 // 필터 초기화
                 document.getElementById("orderTypeFilter").value = "";
                 document.getElementById("statusFilter").value = "";
-                document.getElementById("dateFilter").value = "";
+                document.getElementById("dateFilter").value = "recent3days";
                 document.getElementById("phoneSearch").value = "";
                 document.getElementById("orderNumberSearch").value = "";
 
@@ -2017,9 +2023,9 @@
             // 교환/반품/취소 진행중 필터링
             window.filterExchangeReturnInProgress = function () {
                 // 필터 초기화
+                document.getElementById("dateFilter").value = "recent3days";
                 document.getElementById("orderTypeFilter").value = "";
                 document.getElementById("statusFilter").value = "";
-                document.getElementById("dateFilter").value = "";
                 document.getElementById("phoneSearch").value = "";
                 document.getElementById("orderNumberSearch").value = "";
 
@@ -2047,7 +2053,7 @@
                 // 모든 필터 초기화
                 document.getElementById("orderTypeFilter").value = "";
                 document.getElementById("statusFilter").value = "";
-                document.getElementById("dateFilter").value = "";
+                document.getElementById("dateFilter").value = "recent3days";
                 document.getElementById("phoneSearch").value = "";
                 document.getElementById("orderNumberSearch").value = "";
 
