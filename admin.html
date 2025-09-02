@@ -596,20 +596,20 @@
                     <span class="stats-label">오늘 신규주문</span>
                     <span class="stats-number" id="todayNewOrders">0</span>
                 </div>
-                <div class="stats-item">
-                    <span class="stats-label">교환접수요청</span>
-                    <span class="stats-number" id="todayExchangeRequests"
-                        >0</span
-                    >
-                </div>
-                <div class="stats-item">
-                    <span class="stats-label">반품접수요청</span>
-                    <span class="stats-number" id="todayReturnRequests">0</span>
-                </div>
-                <div class="stats-item">
-                    <span class="stats-label">취소요청</span>
-                    <span class="stats-number" id="todayCancelRequests">0</span>
-                </div>
+                                 <div class="stats-item">
+                     <span class="stats-label">교환접수 진행중</span>
+                     <span class="stats-number" id="todayExchangeRequests"
+                         >0</span
+                     >
+                 </div>
+                 <div class="stats-item">
+                     <span class="stats-label">반품접수 진행중</span>
+                     <span class="stats-number" id="todayReturnRequests">0</span>
+                 </div>
+                 <div class="stats-item">
+                     <span class="stats-label">취소 요청 진행중</span>
+                     <span class="stats-number" id="todayCancelRequests">0</span>
+                 </div>
             </div>
             <div class="status-bar">
                 <div class="controls">
@@ -655,18 +655,6 @@
                         </svg>
                         전체 보기
                     </button>
-                    <button class="btn btn-success" onclick="exportToExcelAI()">
-                        <svg
-                            class="inline-icon"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                        >
-                            <path
-                                d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"
-                            />
-                        </svg>
-                        AI 변환용 내보내기(엑셀)
-                    </button>
                     <button class="btn btn-info" onclick="exportToExcelFull()">
                         <svg
                             class="inline-icon"
@@ -677,7 +665,7 @@
                                 d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"
                             />
                         </svg>
-                        송장 포함 전체 내보내기(엑셀)
+                        전체 내보내기(엑셀)
                     </button>
                     <button
                         class="btn btn-outline"
@@ -799,19 +787,65 @@
                         >
                     </div>
 
-                    <!-- 송장 업로드 모달 -->
-                    <div
-                        id="invoiceUploadModal"
-                        style="
-                            display: none;
-                            position: fixed;
-                            inset: 0;
-                            background: rgba(0, 0, 0, 0.4);
-                            align-items: center;
-                            justify-content: center;
-                            z-index: 2000;
-                        "
-                    >
+                                         <!-- 관련 주문 모달 -->
+                     <div
+                         id="relatedOrdersModal"
+                         style="
+                             display: none;
+                             position: fixed;
+                             inset: 0;
+                             background: rgba(0, 0, 0, 0.4);
+                             align-items: center;
+                             justify-content: center;
+                             z-index: 2000;
+                         "
+                     >
+                         <div
+                             style="
+                                 background: #fff;
+                                 padding: 24px;
+                                 border-radius: 12px;
+                                 width: 90%;
+                                 max-width: 1200px;
+                                 max-height: 90vh;
+                                 overflow-y: auto;
+                             "
+                         >
+                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                 <h3 style="margin: 0; color: #212529;">
+                                     <svg class="inline-icon" viewBox="0 0 24 24" fill="currentColor" style="color: #007bff;">
+                                         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                                     </svg>
+                                     원주문번호: <span id="modalOrderNumber" style="color: #007bff; font-weight: bold;"></span>
+                                 </h3>
+                                 <button
+                                     class="btn"
+                                     onclick="closeRelatedOrdersModal()"
+                                     style="background: #6c757d; color: white; padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer;"
+                                 >
+                                     ✕ 닫기
+                                 </button>
+                             </div>
+                             
+                             <div id="relatedOrdersContent">
+                                 <!-- 관련 주문 데이터가 여기에 표시됩니다 -->
+                             </div>
+                         </div>
+                     </div>
+
+                     <!-- 송장 업로드 모달 -->
+                     <div
+                         id="invoiceUploadModal"
+                         style="
+                             display: none;
+                             position: fixed;
+                             inset: 0;
+                             background: rgba(0, 0, 0, 0.4);
+                             align-items: center;
+                             justify-content: center;
+                             z-index: 2000;
+                         "
+                     >
                         <div
                             style="
                                 background: #fff;
@@ -840,7 +874,7 @@
                                 </button>
                                 <label
                                     class="btn btn-primary btn-sm"
-                                    style="cursor: pointer"
+                                    style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center;"
                                 >
                                     파일 선택
                                     <input
@@ -1268,11 +1302,12 @@
                     filteredData[id] = order;
                 });
 
-                // 페이지네이션 유지 (리셋하지 않음)
-                allFilteredData = Object.entries(filteredData);
-                updatePagination();
-                updateStats(filteredData);
-                updateRecentOrders(filteredData);
+                                 // 페이지네이션 유지 (리셋하지 않음)
+                 allFilteredData = Object.entries(filteredData);
+                 updatePagination();
+                 // 통계는 항상 전체 데이터로 업데이트 (미처리 체크 개념 유지)
+                 updateStats(data);
+                 updateRecentOrders(filteredData);
 
                 // 필터 상태 표시 업데이트
                 updateFilterStatusDisplay();
@@ -1308,21 +1343,196 @@
                 }
             }
 
-            // 송장 업로드 모달 제어
-            window.openInvoiceUploadModal = function () {
-                document.getElementById("invoiceUploadModal").style.display =
-                    "flex";
-                document.getElementById("invoiceImportStatus").textContent = "";
-                document.getElementById("invoicePreview").style.display =
-                    "none";
-                document.getElementById("uploadBtn").disabled = true;
-                const fileInput = document.getElementById("invoiceFileInput");
-                if (fileInput) fileInput.value = "";
-            };
-            window.closeInvoiceUploadModal = function () {
-                document.getElementById("invoiceUploadModal").style.display =
-                    "none";
-            };
+                         // 관련 주문 모달 제어
+             window.showRelatedOrdersModal = async function (orderNumber) {
+                 try {
+                     // 모달 표시
+                     document.getElementById("relatedOrdersModal").style.display = "flex";
+                     document.getElementById("modalOrderNumber").textContent = orderNumber;
+                     
+                     // 로딩 표시
+                     document.getElementById("relatedOrdersContent").innerHTML = 
+                         '<div style="text-align: center; padding: 40px; color: #666;">데이터를 불러오는 중...</div>';
+                     
+                     // 관련 주문 데이터 조회
+                     const allSnap = await get(ref(database, "orders"));
+                     const all = allSnap.val() || {};
+                     
+                     // 해당 주문번호와 관련된 모든 주문 찾기
+                     const relatedOrders = [];
+                     
+                     // 1. 원주문 찾기
+                     const originalOrder = Object.values(all).find(order => 
+                         order && order.orderNumber === orderNumber
+                     );
+                     
+                     if (originalOrder) {
+                         relatedOrders.push({
+                             id: Object.keys(all).find(key => all[key] === originalOrder),
+                             order: originalOrder,
+                             type: "원주문"
+                         });
+                     }
+                     
+                     // 2. 관련 클레임들 찾기 (교환/반품/취소)
+                     Object.entries(all).forEach(([id, order]) => {
+                         if (order && order.existingOrderNumber === orderNumber) {
+                             relatedOrders.push({
+                                 id: id,
+                                 order: order,
+                                 type: "클레임"
+                             });
+                         }
+                     });
+                     
+                     // 주문 시간순으로 정렬
+                     relatedOrders.sort((a, b) => a.order.createdAt - b.order.createdAt);
+                     
+                     // 모달 내용 업데이트
+                     updateRelatedOrdersModal(relatedOrders);
+                     
+                 } catch (error) {
+                     console.error("관련 주문 조회 오류:", error);
+                     document.getElementById("relatedOrdersContent").innerHTML = 
+                         '<div style="text-align: center; padding: 40px; color: #dc3545;">데이터 조회 중 오류가 발생했습니다.</div>';
+                 }
+             };
+             
+             window.closeRelatedOrdersModal = function () {
+                 document.getElementById("relatedOrdersModal").style.display = "none";
+             };
+             
+             // 관련 주문 모달 내용 업데이트
+             function updateRelatedOrdersModal(relatedOrders) {
+                 if (relatedOrders.length === 0) {
+                     document.getElementById("relatedOrdersContent").innerHTML = 
+                         '<div style="text-align: center; padding: 40px; color: #666;">관련된 주문이 없습니다.</div>';
+                     return;
+                 }
+                 
+                 let modalHTML = `
+                     <div style="margin-bottom: 20px; padding: 16px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+                         <div style="font-weight: 600; color: #495057; margin-bottom: 8px;">📊 관련 주문 요약</div>
+                         <div style="display: flex; gap: 20px; font-size: 14px;">
+                             <span>총 ${relatedOrders.length}건</span>
+                             <span>원주문: ${relatedOrders.filter(o => o.type === "원주문").length}건</span>
+                             <span>클레임: ${relatedOrders.filter(o => o.type === "클레임").length}건</span>
+                         </div>
+                     </div>
+                     
+                     <div style="overflow-x: auto;">
+                         <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                             <thead>
+                                 <tr style="background: #f8f9fa;">
+                                     <th style="padding: 12px 8px; border: 1px solid #dee2e6; text-align: left;">유형</th>
+                                     <th style="padding: 12px 8px; border: 1px solid #dee2e6; text-align: left;">주문번호</th>
+                                     <th style="padding: 12px 8px; border: 1px solid #dee2e6; text-align: left;">주문시간</th>
+                                     <th style="padding: 12px 8px; border: 1px solid #dee2e6; text-align: left;">입금자명</th>
+                                     <th style="padding: 12px 8px; border: 1px solid #dee2e6; text-align: left;">연락처</th>
+                                     <th style="padding: 12px 8px; border: 1px solid #dee2e6; text-align: left;">주문유형</th>
+                                     <th style="padding: 12px 8px; border: 1px solid #dee2e6; text-align: left;">구매제품</th>
+                                     <th style="padding: 12px 8px; border: 1px solid #dee2e6; text-align: left;">배송상태</th>
+                                     <th style="padding: 12px 8px; border: 1px solid #dee2e6; text-align: left;">작업</th>
+                                 </tr>
+                             </thead>
+                             <tbody>
+                 `;
+                 
+                 relatedOrders.forEach(({id, order, type}) => {
+                     const orderDate = new Date(order.createdAt);
+                     const typeBadge = type === "원주문" ? 
+                         '<span style="background: #28a745; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px;">원주문</span>' :
+                         '<span style="background: #ffc107; color: #212529; padding: 4px 8px; border-radius: 12px; font-size: 11px;">클레임</span>';
+                     
+                     modalHTML += `
+                         <tr style="border-bottom: 1px solid #f1f3f4;">
+                             <td style="padding: 12px 8px; border: 1px solid #dee2e6;">${typeBadge}</td>
+                             <td style="padding: 12px 8px; border: 1px solid #dee2e6;"><strong>${order.orderNumber}</strong></td>
+                             <td style="padding: 12px 8px; border: 1px solid #dee2e6;">${orderDate.toLocaleString("ko-KR")}</td>
+                             <td style="padding: 12px 8px; border: 1px solid #dee2e6;">${order.customerName || ""}</td>
+                             <td style="padding: 12px 8px; border: 1px solid #dee2e6;">${order.phone || ""}</td>
+                             <td style="padding: 12px 8px; border: 1px solid #dee2e6;">
+                                 <span style="background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 12px; font-size: 11px;">
+                                     ${order.orderType || "신규주문"}
+                                 </span>
+                             </td>
+                             <td style="padding: 12px 8px; border: 1px solid #dee2e6;">${order.product || ""} (${order.quantity || 0}개)</td>
+                             <td style="padding: 12px 8px; border: 1px solid #dee2e6;">
+                                 <span style="background: ${getStatusColor(order.status)}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px;">
+                                     ${order.status}
+                                 </span>
+                             </td>
+                             <td style="padding: 12px 8px; border: 1px solid #dee2e6;">
+                                 <select onchange="updateOrderStatusFromModal('${id}', this.value)" style="padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+                                     <option value="접수" ${order.status === "접수" ? "selected" : ""}>접수</option>
+                                     <option value="배송중" ${order.status === "배송중" ? "selected" : ""}>배송중</option>
+                                     <option value="배송완료" ${order.status === "배송완료" ? "selected" : ""}>배송완료</option>
+                                     <option value="취소" ${order.status === "취소" ? "selected" : ""}>취소</option>
+                                 </select>
+                             </td>
+                         </tr>
+                     `;
+                 });
+                 
+                 modalHTML += `
+                             </tbody>
+                         </table>
+                     </div>
+                     
+                     <div style="margin-top: 20px; padding: 16px; background: #e3f2fd; border-radius: 8px; border: 1px solid #bbdefb;">
+                         <div style="font-weight: 600; color: #1976d2; margin-bottom: 8px;">💡 작업 팁</div>
+                         <div style="font-size: 13px; color: #1976d2; line-height: 1.5;">
+                             • 원주문과 관련 클레임들의 상태를 일괄적으로 관리할 수 있습니다.<br>
+                             • 클레임이 진행 중인 경우 원주문 상태 변경 시 주의가 필요합니다.<br>
+                             • 모든 관련 주문의 상태를 확인하고 일관성 있게 관리하세요.
+                         </div>
+                     </div>
+                 `;
+                 
+                 document.getElementById("relatedOrdersContent").innerHTML = modalHTML;
+             }
+             
+             // 상태별 색상 반환
+             function getStatusColor(status) {
+                 switch (status) {
+                     case "접수": return "#ffc107";
+                     case "배송중": return "#17a2b8";
+                     case "배송완료": return "#28a745";
+                     case "취소": return "#dc3545";
+                     default: return "#6c757d";
+                 }
+             }
+             
+             // 모달에서 주문 상태 업데이트
+             window.updateOrderStatusFromModal = async function (orderId, newStatus) {
+                 try {
+                     await updateOrderStatus(orderId, newStatus);
+                     
+                     // 모달 새로고침 (상태 변경 후 최신 데이터 반영)
+                     const orderNumber = document.getElementById("modalOrderNumber").textContent;
+                     await showRelatedOrdersModal(orderNumber);
+                     
+                 } catch (error) {
+                     console.error("모달에서 상태 업데이트 오류:", error);
+                     alert("상태 업데이트 중 오류가 발생했습니다.");
+                 }
+             };
+
+             // 송장 업로드 모달 제어
+             window.openInvoiceUploadModal = function () {
+                 document.getElementById("invoiceUploadModal").style.display =
+                     "flex";
+                 document.getElementById("invoiceImportStatus").textContent = "";
+                 document.getElementById("invoicePreview").style.display =
+                     "none";
+                 document.getElementById("uploadBtn").disabled = true;
+                 const fileInput = document.getElementById("invoiceFileInput");
+                 if (fileInput) fileInput.value = "";
+             };
+             window.closeInvoiceUploadModal = function () {
+                 document.getElementById("invoiceUploadModal").style.display =
+                     "none";
+             };
 
             // 송장 양식 다운로드
             window.downloadInvoiceTemplate = function () {
@@ -1726,7 +1936,12 @@
                 <td><span class="order-type-badge">${
                     order.orderType || "신규주문"
                 }</span></td>
-                <td>${order.existingOrderNumber || "-"}</td>
+                                 <td>
+                     ${order.existingOrderNumber ? 
+                         `<span class="existing-order-link" onclick="showRelatedOrdersModal('${order.existingOrderNumber}')" style="color: #007bff; cursor: pointer; text-decoration: underline;">${order.existingOrderNumber}</span>` 
+                         : "-"
+                     }
+                 </td>
                 <td>${order.product} (${order.quantity}개)</td>
                 <td style="max-width: 150px; word-break: break-all;">${
                     order.address || ""
@@ -1819,54 +2034,66 @@
                 }
             };
 
-            // 통계 업데이트
-            function updateStats(data) {
-                if (!data) {
-                    document.getElementById("todayNewOrders").textContent = "0";
-                    document.getElementById(
-                        "todayExchangeRequests"
-                    ).textContent = "0";
-                    document.getElementById("todayReturnRequests").textContent =
-                        "0";
-                    document.getElementById("todayCancelRequests").textContent =
-                        "0";
-                    return;
-                }
-
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-
-                const entries = Object.entries(data);
-                const todayOrders = entries.filter(([id, order]) => {
-                    const orderDate = new Date(order.createdAt);
-                    return orderDate >= today && orderDate < tomorrow;
-                });
-
-                // 주문 유형별 통계
-                const newOrders = todayOrders.filter(
-                    ([id, order]) => order.orderType === "신규주문"
-                );
-                const exchangeRequests = todayOrders.filter(
-                    ([id, order]) => order.orderType === "교환"
-                );
-                const returnRequests = todayOrders.filter(
-                    ([id, order]) => order.orderType === "반품"
-                );
-                const cancelRequests = todayOrders.filter(
-                    ([id, order]) => order.orderType === "취소"
-                );
-
-                document.getElementById("todayNewOrders").textContent =
-                    newOrders.length;
-                document.getElementById("todayExchangeRequests").textContent =
-                    exchangeRequests.length;
-                document.getElementById("todayReturnRequests").textContent =
-                    returnRequests.length;
-                document.getElementById("todayCancelRequests").textContent =
-                    cancelRequests.length;
-            }
+                         // 통계 업데이트 - 항상 전체 데이터를 기준으로 계산
+             function updateStats(data) {
+                 if (!data) {
+                     document.getElementById("todayNewOrders").textContent = "0";
+                     document.getElementById(
+                         "todayExchangeRequests"
+                     ).textContent = "0";
+                     document.getElementById("todayReturnRequests").textContent =
+                         "0";
+                     document.getElementById("todayCancelRequests").textContent =
+                         "0";
+                     return;
+                 }
+ 
+                 const today = new Date();
+                 today.setHours(0, 0, 0, 0);
+                 const tomorrow = new Date(today);
+                 tomorrow.setDate(tomorrow.getDate() + 1);
+ 
+                 // 항상 전체 데이터를 기준으로 통계 계산
+                 const entries = Object.entries(data);
+                 
+                 // 오늘 신규주문만 날짜 필터 적용
+                 const todayOrders = entries.filter(([id, order]) => {
+                     const orderDate = new Date(order.createdAt);
+                     return orderDate >= today && orderDate < tomorrow;
+                 });
+ 
+                 // 주문 유형별 통계
+                 const newOrders = todayOrders.filter(
+                     ([id, order]) => order.orderType === "신규주문"
+                 );
+                 
+                 // 전체 데이터에서 교환/반품/취소 진행중인 주문 카운트 (접수/배송중 상태)
+                 // 이 부분은 항상 전체 데이터를 기준으로 계산하여 미처리 체크 개념 유지
+                 const exchangeRequests = entries.filter(
+                     ([id, order]) => 
+                         order.orderType === "교환" && 
+                         (order.status === "접수" || order.status === "배송중")
+                 );
+                 const returnRequests = entries.filter(
+                     ([id, order]) => 
+                         order.orderType === "반품" && 
+                         (order.status === "접수" || order.status === "배송중")
+                 );
+                 const cancelRequests = entries.filter(
+                     ([id, order]) => 
+                         order.orderType === "취소" && 
+                         (order.status === "접수" || order.status === "배송중")
+                 );
+ 
+                 document.getElementById("todayNewOrders").textContent =
+                     newOrders.length;
+                 document.getElementById("todayExchangeRequests").textContent =
+                     exchangeRequests.length;
+                 document.getElementById("todayReturnRequests").textContent =
+                     returnRequests.length;
+                 document.getElementById("todayCancelRequests").textContent =
+                     cancelRequests.length;
+             }
 
             // 최근 주문 업데이트
             // 최근주문 섹션 제거로 더미 함수 유지
@@ -2171,21 +2398,22 @@
                             filteredData[id] = order;
                         });
 
-                        // 페이지네이션 유지 및 테이블 업데이트
-                        allFilteredData = Object.entries(filteredData);
-                        updatePagination();
-                        updateStats(filteredData);
-                        updateRecentOrders(filteredData);
-
-                        // 필터 상태 표시 업데이트
-                        updateFilterStatusDisplay();
-                    },
-                    { onlyOnce: true }
-                );
-            }
-
-            // 교환/반품/취소 진행중 커스텀 필터링
-            function filterExchangeReturnInProgressCustom() {
+                                                 // 페이지네이션 유지 및 테이블 업데이트
+                         allFilteredData = Object.entries(filteredData);
+                         updatePagination();
+                         // 통계는 항상 전체 데이터로 업데이트 (미처리 체크 개념 유지)
+                         updateStats(data);
+                         updateRecentOrders(filteredData);
+ 
+                         // 필터 상태 표시 업데이트
+                         updateFilterStatusDisplay();
+                     },
+                     { onlyOnce: true }
+                 );
+             }
+ 
+             // 교환/반품/취소 진행중 커스텀 필터링
+             function filterExchangeReturnInProgressCustom() {
                 const ordersRef = ref(database, "orders");
                 const ordersQuery = query(ordersRef, orderByChild("createdAt"));
                 onValue(
@@ -2241,18 +2469,19 @@
                             filteredData[id] = order;
                         });
 
-                        // 페이지네이션 유지 및 테이블 업데이트
-                        allFilteredData = Object.entries(filteredData);
-                        updatePagination();
-                        updateStats(filteredData);
-                        updateRecentOrders(filteredData);
-
-                        // 필터 상태 표시 업데이트
-                        updateFilterStatusDisplay();
-                    },
-                    { onlyOnce: true }
-                );
-            }
+                                                 // 페이지네이션 유지 및 테이블 업데이트
+                         allFilteredData = Object.entries(filteredData);
+                         updatePagination();
+                         // 통계는 항상 전체 데이터로 업데이트 (미처리 체크 개념 유지)
+                         updateStats(data);
+                         updateRecentOrders(filteredData);
+ 
+                         // 필터 상태 표시 업데이트
+                         updateFilterStatusDisplay();
+                     },
+                     { onlyOnce: true }
+                 );
+             }
 
             // 커스텀 상태 필터링 (여러 상태 동시 지원)
             function filterOrdersWithCustomStatus(allowedStatuses) {
@@ -2284,22 +2513,23 @@
                             }
                         );
 
-                        // 필터링된 데이터로 테이블 업데이트
-                        const filteredData = {};
-                        filteredEntries.forEach(([id, order]) => {
-                            filteredData[id] = order;
-                        });
-
-                        updateOrdersTable(filteredData);
-                        updateStats(filteredData);
-                        updateRecentOrders(filteredData);
-                    },
-                    { onlyOnce: true }
-                );
-            }
-
-            // 커스텀 주문유형과 상태 필터링
-            function filterOrdersWithCustomTypeAndStatus(
+                                                 // 필터링된 데이터로 테이블 업데이트
+                         const filteredData = {};
+                         filteredEntries.forEach(([id, order]) => {
+                             filteredData[id] = order;
+                         });
+ 
+                         updateOrdersTable(filteredData);
+                         // 통계는 항상 전체 데이터로 업데이트 (미처리 체크 개념 유지)
+                         updateStats(data);
+                         updateRecentOrders(filteredData);
+                     },
+                     { onlyOnce: true }
+                 );
+             }
+ 
+             // 커스텀 주문유형과 상태 필터링
+             function filterOrdersWithCustomTypeAndStatus(
                 allowedTypes,
                 allowedStatuses
             ) {
@@ -2357,19 +2587,20 @@
                             "건"
                         );
 
-                        // 필터링된 데이터로 테이블 업데이트
-                        const filteredData = {};
-                        filteredEntries.forEach(([id, order]) => {
-                            filteredData[id] = order;
-                        });
-
-                        updateOrdersTable(filteredData);
-                        updateStats(filteredData);
-                        updateRecentOrders(filteredData);
-                    },
-                    { onlyOnce: true }
-                );
-            }
+                                                 // 필터링된 데이터로 테이블 업데이트
+                         const filteredData = {};
+                         filteredEntries.forEach(([id, order]) => {
+                             filteredData[id] = order;
+                         });
+ 
+                         updateOrdersTable(filteredData);
+                         // 통계는 항상 전체 데이터로 업데이트 (미처리 체크 개념 유지)
+                         updateStats(data);
+                         updateRecentOrders(filteredData);
+                     },
+                     { onlyOnce: true }
+                 );
+             }
 
             // 일괄 상태 업데이트
             window.bulkUpdateStatus = async function (newStatus) {
