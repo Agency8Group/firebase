@@ -1966,6 +1966,8 @@
 
                     status.textContent = message.split("\n")[0]; // 첫 줄만 status에 표시
                     alert(message);
+                    // 업로드 완료 후 자동 새로고침
+                    try { if (typeof window.refreshOrders === 'function') window.refreshOrders(); } catch(_) {}
 
                     // 송장 업로드 후 현재 필터 상태 유지
                     // 실시간 리스너가 자동으로 필터를 적용함
