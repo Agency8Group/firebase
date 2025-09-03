@@ -65,7 +65,7 @@
                     await signInWithEmailAndPassword(auth, email, password);
                     document.getElementById('loginError').textContent = '';
                 } catch (error) {
-                    document.getElementById('loginError').textContent = '로그인 실패: ' + error.message;
+                    document.getElementById('loginError').textContent = '이메일 주소 및 비밀번호를 입력해주세요.';
                 }
             };
             
