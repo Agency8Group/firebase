@@ -31,18 +31,27 @@
             window.app = app;
             
             // 인증 상태 변경 감지
+            // 초기 렌더링 시 모달 깜빡임 방지: DOMContentLoaded 이후에 상태 반영
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     // 로그인 성공
                     document.getElementById('loginModal').style.display = 'none';
                     document.getElementById('mainContent').style.display = 'block';
-                    document.getElementById('userInfo').textContent = `관리자: ${user.email}`;
+                    const userInfo = document.getElementById('userInfo');
+                    const userInfoSpan = userInfo ? userInfo.querySelector('span') : null;
+                    if (userInfoSpan) {
+                        userInfoSpan.textContent = `관리자: ${user.email}`;
+                    }
+                    if (userInfo) userInfo.style.display = 'flex';
                     document.getElementById('logoutBtn').style.display = 'inline-block';
                 } else {
                     // 로그아웃 상태
                     document.getElementById('loginModal').style.display = 'flex';
                     document.getElementById('mainContent').style.display = 'none';
-                    document.getElementById('userInfo').textContent = '';
+                    const userInfo = document.getElementById('userInfo');
+                    const userInfoSpan = userInfo ? userInfo.querySelector('span') : null;
+                    if (userInfoSpan) userInfoSpan.textContent = '';
+                    if (userInfo) userInfo.style.display = 'none';
                     document.getElementById('logoutBtn').style.display = 'none';
                 }
             });
@@ -142,8 +151,8 @@
 
             .user-info {
                 position: absolute;
-                top: 16px;
-                right: 16px;
+                top: 96px;
+                right: 200px;
                 background: transparent;
                 padding: 0;
                 border-radius: 0;
@@ -151,6 +160,7 @@
                 display: flex;
                 gap: 12px;
                 align-items: center;
+                z-index: 1000;
             }
 
             .logout-btn {
@@ -697,7 +707,7 @@
     </head>
     <body>
         <!-- 로그인 모달 -->
-        <div id="loginModal" class="login-modal">
+        <div id="loginModal" class="login-modal" style="display: none;">
             <div class="login-container">
                 <h2>관리자 로그인</h2>
                 <input type="email" id="loginEmail" class="login-input" placeholder="이메일 주소" required>
