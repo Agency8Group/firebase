@@ -43,7 +43,8 @@
                         userInfoSpan.textContent = `관리자: ${user.email}`;
                     }
                     if (userInfo) userInfo.style.display = 'flex';
-                    document.getElementById('logoutBtn').style.display = 'inline-block';
+                    const logoutBtn = document.getElementById('logoutBtn');
+                    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
                 } else {
                     // 로그아웃 상태
                     document.getElementById('loginModal').style.display = 'flex';
@@ -52,7 +53,8 @@
                     const userInfoSpan = userInfo ? userInfo.querySelector('span') : null;
                     if (userInfoSpan) userInfoSpan.textContent = '';
                     if (userInfo) userInfo.style.display = 'none';
-                    document.getElementById('logoutBtn').style.display = 'none';
+                    const logoutBtn = document.getElementById('logoutBtn');
+                    if (logoutBtn) logoutBtn.style.display = 'none';
                 }
             });
             
@@ -150,9 +152,6 @@
             }
 
             .user-info {
-                position: absolute;
-                top: 96px;
-                right: 200px;
                 background: transparent;
                 padding: 0;
                 border-radius: 0;
@@ -160,7 +159,6 @@
                 display: flex;
                 gap: 12px;
                 align-items: center;
-                z-index: 1000;
             }
 
             .logout-btn {
@@ -727,10 +725,7 @@
         </script>
 
         <!-- 사용자 정보 및 로그아웃 버튼 -->
-        <div id="userInfo" class="user-info" style="display: none;">
-            <span></span>
-            <button id="logoutBtn" onclick="logout()" class="logout-btn">로그아웃</button>
-        </div>
+        <!-- 위치를 헤더 내부로 이동 (h1과 좌우 정렬) -->
 
         <!-- 메인 콘텐츠 -->
         <div id="mainContent" style="display: none;">
@@ -762,7 +757,8 @@
         </div>
 
         <div class="header">
-            <h1>
+            <div class="header-title-row" style="display:flex; align-items:center; justify-content:space-between; gap:16px;">
+            <h1 style="margin:0;">
                 <svg
                     class="inline-icon"
                     viewBox="0 0 24 24"
@@ -777,6 +773,11 @@
                     class="status-indicator disconnected"
                 ></span>
             </h1>
+            <div id="userInfo" class="user-info" style="display:none; position:static; gap:8px;">
+                <span style="font-size:14px; color:#495057;"></span>
+                <button id="logoutBtn" onclick="logout()" class="btn btn-primary" style="min-height:36px; padding:8px 12px;">로그아웃</button>
+            </div>
+            </div>
             <div class="header-stats">
                 <div class="stats-item">
                     <span class="stats-label">오늘 신규주문</span>
