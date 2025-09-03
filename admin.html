@@ -56,10 +56,16 @@
                     const logoutBtn = document.getElementById("logoutBtn");
                     if (logoutBtn) logoutBtn.style.display = "inline-flex";
 
-                    // 로그인 성공 환영 알림 표시
-                    alert(
-                        `🎉 로그인 성공!\n환영합니다, ${user.email}님!\n\n0000셀러 주문 관리 시스템에 오신 것을 환영합니다.`
-                    );
+                    // 로그인 성공 환영 알림 표시 (세션당 1회)
+                    try {
+                        const key = `loginWelcomeShown_${user.uid}`;
+                        if (!sessionStorage.getItem(key)) {
+                            alert(
+                                `🎉 로그인 성공!\n환영합니다, ${user.email}님!\n\n0000셀러 주문 관리 시스템에 오신 것을 환영합니다.`
+                            );
+                            sessionStorage.setItem(key, "1");
+                        }
+                    } catch (_) {}
 
                     // 로그인 직후 데이터가 비어 보이는 현상 방지: 강제 새로고침 트리거
                     try {
@@ -101,6 +107,14 @@
 
             // 로그아웃 함수
             window.logout = function () {
+                try {
+                    const user = auth.currentUser;
+                    if (user) {
+                        sessionStorage.removeItem(
+                            `loginWelcomeShown_${user.uid}`
+                        );
+                    }
+                } catch (_) {}
                 signOut(auth);
             };
         </script>
