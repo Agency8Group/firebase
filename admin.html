@@ -45,6 +45,8 @@
                     if (userInfo) userInfo.style.display = 'flex';
                     const logoutBtn = document.getElementById('logoutBtn');
                     if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+                    // 로그인 직후 데이터가 비어 보이는 현상 방지: 강제 새로고침 트리거
+                    try { setTimeout(() => { if (typeof window.refreshOrders === 'function') window.refreshOrders(); }, 0); } catch(_) {}
                 } else {
                     // 로그아웃 상태
                     document.getElementById('loginModal').style.display = 'flex';
