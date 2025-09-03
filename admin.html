@@ -5,6 +5,66 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>0000셀러 주문 관리자 페이지</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+        <!-- Firebase Authentication SDK 추가 -->
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+            import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+            
+            // Firebase 설정
+            const firebaseConfig = {
+                apiKey: "AIzaSyA4Z1B42fmBIJznBED11XIIiVVKN5OSQ1E",
+                authDomain: "seller1-b8a4c.firebaseapp.com",
+                projectId: "seller1-b8a4c",
+                storageBucket: "seller1-b8a4c.firebasestorage.app",
+                messagingSenderId: "740000823974",
+                appId: "1:740000823974:web:ac62ca392ffb34e96e9267",
+                measurementId: "G-Q8ZNT6PDB9",
+                databaseURL: "https://seller1-b8a4c-default-rtdb.asia-southeast1.firebasedatabase.app",
+            };
+            
+            // Firebase 초기화
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            
+            // 전역 변수로 auth와 app 객체 설정
+            window.auth = auth;
+            window.app = app;
+            
+            // 인증 상태 변경 감지
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // 로그인 성공
+                    document.getElementById('loginModal').style.display = 'none';
+                    document.getElementById('mainContent').style.display = 'block';
+                    document.getElementById('userInfo').textContent = `관리자: ${user.email}`;
+                    document.getElementById('logoutBtn').style.display = 'inline-block';
+                } else {
+                    // 로그아웃 상태
+                    document.getElementById('loginModal').style.display = 'flex';
+                    document.getElementById('mainContent').style.display = 'none';
+                    document.getElementById('userInfo').textContent = '';
+                    document.getElementById('logoutBtn').style.display = 'none';
+                }
+            });
+            
+            // 로그인 함수
+            window.login = async function() {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    document.getElementById('loginError').textContent = '';
+                } catch (error) {
+                    document.getElementById('loginError').textContent = '로그인 실패: ' + error.message;
+                }
+            };
+            
+            // 로그아웃 함수
+            window.logout = function() {
+                signOut(auth);
+            };
+        </script>
         <style>
             * {
                 box-sizing: border-box;
@@ -19,6 +79,93 @@
                 -webkit-text-size-adjust: 100%;
             }
 
+            /* 로그인 모달 스타일 */
+            .login-modal {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+            }
+
+            .login-container {
+                background: white;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+                width: 100%;
+                max-width: 400px;
+                text-align: center;
+            }
+
+            .login-container h2 {
+                margin: 0 0 30px 0;
+                color: #333;
+                font-size: 24px;
+            }
+
+            .login-input {
+                width: 100%;
+                padding: 12px;
+                margin: 10px 0;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                font-size: 16px;
+            }
+
+            .login-btn {
+                width: 100%;
+                padding: 12px;
+                background: #007bff;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-size: 16px;
+                cursor: pointer;
+                margin-top: 20px;
+            }
+
+            .login-btn:hover {
+                background: #0056b3;
+            }
+
+            .login-error {
+                color: #dc3545;
+                margin-top: 10px;
+                font-size: 14px;
+            }
+
+            .user-info {
+                position: absolute;
+                top: 16px;
+                right: 16px;
+                background: transparent;
+                padding: 0;
+                border-radius: 0;
+                margin: 0;
+                display: flex;
+                gap: 12px;
+                align-items: center;
+            }
+
+            .logout-btn {
+                background: #dc3545;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 6px;
+                cursor: pointer;
+            }
+
+            .logout-btn:hover {
+                background: #c82333;
+            }
+
             .header {
                 background: white;
                 padding: 28px;
@@ -26,6 +173,7 @@
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
                 margin-bottom: 24px;
                 border: 1px solid #f1f3f4;
+                position: relative;
             }
 
             .header h1 {
@@ -548,6 +696,34 @@
         </style>
     </head>
     <body>
+        <!-- 로그인 모달 -->
+        <div id="loginModal" class="login-modal">
+            <div class="login-container">
+                <h2>관리자 로그인</h2>
+                <input type="email" id="loginEmail" class="login-input" placeholder="이메일 주소" required>
+                <input type="password" id="loginPassword" class="login-input" placeholder="비밀번호" required>
+                <button onclick="login()" class="login-btn">로그인</button>
+                <div id="loginError" class="login-error"></div>
+            </div>
+        </div>
+        
+        <script>
+            // Enter 키로 로그인
+            document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
+        </script>
+
+        <!-- 사용자 정보 및 로그아웃 버튼 -->
+        <div id="userInfo" class="user-info" style="display: none;">
+            <span></span>
+            <button id="logoutBtn" onclick="logout()" class="logout-btn">로그아웃</button>
+        </div>
+
+        <!-- 메인 콘텐츠 -->
+        <div id="mainContent" style="display: none;">
         <!-- 상단 푸터 -->
         <div
             class="top-footer"
@@ -1165,22 +1341,8 @@
             } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-database.js";
             import * as XLSX from "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm";
 
-            // Your web app's Firebase configuration
-            const firebaseConfig = {
-                apiKey: "AIzaSyA4Z1B42fmBIJznBED11XIIiVVKN5OSQ1E",
-                authDomain: "seller1-b8a4c.firebaseapp.com",
-                projectId: "seller1-b8a4c",
-                storageBucket: "seller1-b8a4c.firebasestorage.app",
-                messagingSenderId: "740000823974",
-                appId: "1:740000823974:web:ac62ca392ffb34e96e9267",
-                measurementId: "G-Q8ZNT6PDB9",
-                databaseURL:
-                    "https://seller1-b8a4c-default-rtdb.asia-southeast1.firebasedatabase.app",
-            };
-
-            // Initialize Firebase
-            const app = initializeApp(firebaseConfig);
-            const database = getDatabase(app);
+            // Firebase 설정은 이미 head에서 초기화됨
+            const database = getDatabase(window.app);
 
             // DOM 요소들
             const statusDiv = document.getElementById("status");
@@ -3028,5 +3190,6 @@
                 }
             };
         </script>
+        </div> <!-- mainContent 닫기 -->
     </body>
 </html>
