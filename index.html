@@ -7,12 +7,16 @@
             content="width=device-width, initial-scale=1.0, viewport-fit=cover"
         />
         <title>0000셀러 주문 수집 페이지</title>
-        
+
         <!-- Firebase Authentication SDK -->
         <script type="module">
             import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
-            import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-            
+            import {
+                getAuth,
+                signInWithEmailAndPassword,
+                onAuthStateChanged,
+            } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
             // Firebase 설정
             const firebaseConfig = {
                 apiKey: "AIzaSyA4Z1B42fmBIJznBED11XIIiVVKN5OSQ1E",
@@ -22,42 +26,45 @@
                 messagingSenderId: "740000823974",
                 appId: "1:740000823974:web:ac62ca392ffb34e96e9267",
                 measurementId: "G-Q8ZNT6PDB9",
-                databaseURL: "https://seller1-b8a4c-default-rtdb.asia-southeast1.firebasedatabase.app",
+                databaseURL:
+                    "https://seller1-b8a4c-default-rtdb.asia-southeast1.firebasedatabase.app",
             };
-            
+
             // Firebase 초기화
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
-            
+
             // 전역 변수로 auth와 app 객체 설정
             window.auth = auth;
             window.app = app;
-            
+
             // 인증 상태 변경 감지 (index에서는 자동 이동하지 않음)
             onAuthStateChanged(auth, () => {
                 // no-op: 관리자 버튼으로 시작한 로그인 흐름에서만 이동 처리
             });
-            
+
             // 로그인 함수
-            window.login = async function() {
-                const email = document.getElementById('loginEmail').value;
-                const password = document.getElementById('loginPassword').value;
-                
+            window.login = async function () {
+                const email = document.getElementById("loginEmail").value;
+                const password = document.getElementById("loginPassword").value;
+
                 try {
                     await signInWithEmailAndPassword(auth, email, password);
-                    document.getElementById('loginError').textContent = '';
+                    document.getElementById("loginError").textContent = "";
                     // 관리자 버튼에서 시작한 경우에만 admin으로 이동
                     if (window.isAdminLoginFlow) {
-                        window.open('admin.html', '_blank');
+                        window.open("admin.html", "_blank");
                         window.isAdminLoginFlow = false;
-                        document.getElementById('loginModal').style.display = 'none';
+                        document.getElementById("loginModal").style.display =
+                            "none";
                     }
                 } catch (error) {
-                    document.getElementById('loginError').textContent = '이메일 주소 및 비밀번호를 입력해주세요.';
+                    document.getElementById("loginError").textContent =
+                        "이메일 주소 및 비밀번호를 입력해주세요.";
                 }
             };
         </script>
-        
+
         <style>
             *,
             *::before,
@@ -683,10 +690,24 @@
         <!-- 로그인 모달 -->
         <div id="loginModal" class="login-modal">
             <div class="login-container">
-                <button class="close-btn" onclick="closeLoginModal()">&times;</button>
+                <button class="close-btn" onclick="closeLoginModal()">
+                    &times;
+                </button>
                 <h2>관리자 로그인</h2>
-                <input type="email" id="loginEmail" class="login-input" placeholder="이메일 주소" required>
-                <input type="password" id="loginPassword" class="login-input" placeholder="비밀번호" required>
+                <input
+                    type="email"
+                    id="loginEmail"
+                    class="login-input"
+                    placeholder="이메일 주소"
+                    required
+                />
+                <input
+                    type="password"
+                    id="loginPassword"
+                    class="login-input"
+                    placeholder="비밀번호"
+                    required
+                />
                 <button onclick="login()" class="login-btn">로그인</button>
                 <div id="loginError" class="login-error"></div>
             </div>
@@ -1805,7 +1826,7 @@
                         // 주문내역을 이미지로 생성
                         const imageData = generateOrderImage(orderData);
 
-                        // 모바일에서 앨범에 저장하는 함수
+                        // PC/모바일 환경별 이미지 저장 함수
                         async function saveImageToAlbum() {
                             try {
                                 // Canvas를 Blob으로 변환
@@ -1820,6 +1841,27 @@
 
                                     canvas.toBlob(async function (blob) {
                                         try {
+                                            // PC 환경 감지 (모바일이 아닌 경우)
+                                            const isPC =
+                                                !/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                                                    navigator.userAgent
+                                                );
+
+                                            if (isPC) {
+                                                // PC 환경: 바로 다운로드 폴더에 저장
+                                                const link =
+                                                    document.createElement("a");
+                                                link.download = `주문내역_${orderData.orderNumber}.png`;
+                                                link.href = imageData;
+                                                link.click();
+                                                showMessage(
+                                                    "✅ 이미지가 다운로드 폴더에 저장되었습니다.",
+                                                    "success"
+                                                );
+                                                return;
+                                            }
+
+                                            // 모바일 환경: 기존 방식 유지
                                             // 모바일에서 공유 API 사용 (iOS/Android)
                                             if (
                                                 navigator.share &&
@@ -1885,17 +1927,6 @@
                                                             url
                                                         ),
                                                     1000
-                                                );
-                                            } else {
-                                                // 데스크톱 환경
-                                                const link =
-                                                    document.createElement("a");
-                                                link.download = `주문내역_${orderData.orderNumber}.png`;
-                                                link.href = imageData;
-                                                link.click();
-                                                showMessage(
-                                                    "✅ 이미지가 다운로드되었습니다.",
-                                                    "success"
                                                 );
                                             }
                                         } catch (shareError) {
@@ -1970,9 +2001,8 @@
             // 관리자 페이지 열기 (PIN 대신 로그인 모달 표시)
             btnAdmin.addEventListener("click", function () {
                 window.isAdminLoginFlow = true;
-                document.getElementById('loginModal').style.display = 'flex';
+                document.getElementById("loginModal").style.display = "flex";
             });
-
 
             // 페이지 로드 시 주소 API 로드
             window.addEventListener("load", function () {
@@ -1985,18 +2015,20 @@
             });
 
             // Enter 키로 로그인
-            document.getElementById('loginPassword').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    login();
-                }
-            });
+            document
+                .getElementById("loginPassword")
+                .addEventListener("keypress", function (e) {
+                    if (e.key === "Enter") {
+                        login();
+                    }
+                });
 
             // 로그인 모달 닫기 함수
-            window.closeLoginModal = function() {
-                document.getElementById('loginModal').style.display = 'none';
-                document.getElementById('loginEmail').value = '';
-                document.getElementById('loginPassword').value = '';
-                document.getElementById('loginError').textContent = '';
+            window.closeLoginModal = function () {
+                document.getElementById("loginModal").style.display = "none";
+                document.getElementById("loginEmail").value = "";
+                document.getElementById("loginPassword").value = "";
+                document.getElementById("loginError").textContent = "";
             };
         </script>
     </body>
