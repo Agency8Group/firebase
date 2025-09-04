@@ -5,6 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>0000셀러 주문 관리자 페이지</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+        <!-- 설정 파일 (Firebase 설정 로드) -->
+        <script src="config.js"></script>
         <!-- Firebase Authentication SDK 추가 -->
         <script type="module">
             import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
@@ -15,18 +17,8 @@
                 onAuthStateChanged,
             } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-            // Firebase 설정
-            const firebaseConfig = {
-                apiKey: "AIzaSyA4Z1B42fmBIJznBED11XIIiVVKN5OSQ1E",
-                authDomain: "seller1-b8a4c.firebaseapp.com",
-                projectId: "seller1-b8a4c",
-                storageBucket: "seller1-b8a4c.firebasestorage.app",
-                messagingSenderId: "740000823974",
-                appId: "1:740000823974:web:ac62ca392ffb34e96e9267",
-                measurementId: "G-Q8ZNT6PDB9",
-                databaseURL:
-                    "https://seller1-b8a4c-default-rtdb.asia-southeast1.firebasedatabase.app",
-            };
+            // Firebase 설정 (config.js에서 로드)
+            const firebaseConfig = window.firebaseConfig;
 
             // Firebase 초기화
             const app = initializeApp(firebaseConfig);

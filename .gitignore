@@ -1,4 +1,28 @@
-# 기타 일반적인 제외 파일들
-.DS_Store
-node_modules/
+# Firebase 설정 파일 (보안상 중요)
+config.js
+
+# 환경 변수 파일
+.env
+.env.local
+.env.production
+
+# 로그 파일
 *.log
+
+# 임시 파일
+*.tmp
+*.temp
+
+# IDE 설정
+.vscode/
+.idea/
+
+# OS 생성 파일
+.DS_Store
+Thumbs.db
+
+# Node.js (만약 사용한다면)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
