@@ -1593,10 +1593,113 @@
                     }
                 });
 
-                // 실시간 주문 데이터 리스너
+                // 모든 구조에서 주문 데이터를 수집하는 공통 함수
+                function collectAllOrders(data) {
+                    if (!data) return [];
+
+                    let allEntries = [];
+                    for (const [key, value] of Object.entries(data)) {
+                        // 월별 폴더 구조인지 확인 (YYYY-MM 형식)
+                        if (
+                            key.match(/^\d{4}-\d{2}$/) &&
+                            value &&
+                            typeof value === "object"
+                        ) {
+                            // 월별 폴더 구조
+                            const monthOrderEntries = Object.entries(value);
+                            allEntries = allEntries.concat(monthOrderEntries);
+                        } else if (
+                            value &&
+                            typeof value === "object" &&
+                            value.orderNumber
+                        ) {
+                            // 기존 구조 (직접 주문 객체)
+                            allEntries.push([key, value]);
+                        } else if (value && typeof value === "object") {
+                            // 기타 폴더 구조
+                            const folderOrderEntries = Object.entries(value);
+                            allEntries = allEntries.concat(folderOrderEntries);
+                        }
+                    }
+                    return allEntries;
+                }
+
+                // 주문 ID로 월별 폴더 경로를 찾는 함수
+                async function findOrderPath(orderId) {
+                    try {
+                        console.log("주문 경로 검색 시작:", orderId);
+                        const ordersRef = ref(database, "orders");
+                        const snapshot = await get(ordersRef);
+                        const data = snapshot.val();
+
+                        if (!data) {
+                            console.log("데이터가 없습니다");
+                            return null;
+                        }
+
+                        console.log("전체 데이터 구조:", Object.keys(data));
+
+                        // 모든 구조에서 주문 검색 (월별 폴더 + 기존 구조)
+                        for (const [key, value] of Object.entries(data)) {
+                            // 월별 폴더 구조인지 확인 (YYYY-MM 형식)
+                            if (
+                                key.match(/^\d{4}-\d{2}$/) &&
+                                value &&
+                                typeof value === "object"
+                            ) {
+                                console.log(
+                                    `${key} (월별 폴더)에서 검색 중...`,
+                                    Object.keys(value)
+                                );
+                                if (value[orderId]) {
+                                    const path = `orders/${key}/${orderId}`;
+                                    console.log(
+                                        "주문 경로 찾음 (월별 폴더):",
+                                        path
+                                    );
+                                    return path;
+                                }
+                            } else if (
+                                value &&
+                                typeof value === "object" &&
+                                value.orderNumber
+                            ) {
+                                // 기존 구조 (직접 주문 객체)
+                                if (key === orderId) {
+                                    const path = `orders/${orderId}`;
+                                    console.log(
+                                        "주문 경로 찾음 (기존 구조):",
+                                        path
+                                    );
+                                    return path;
+                                }
+                            } else if (value && typeof value === "object") {
+                                // 기타 폴더 구조
+                                console.log(
+                                    `${key} (기타 폴더)에서 검색 중...`,
+                                    Object.keys(value)
+                                );
+                                if (value[orderId]) {
+                                    const path = `orders/${key}/${orderId}`;
+                                    console.log(
+                                        "주문 경로 찾음 (기타 폴더):",
+                                        path
+                                    );
+                                    return path;
+                                }
+                            }
+                        }
+                        console.log("주문을 찾을 수 없음:", orderId);
+                        return null;
+                    } catch (error) {
+                        console.error("주문 경로 찾기 오류:", error);
+                        return null;
+                    }
+                }
+
+                // 실시간 주문 데이터 리스너 (월별 폴더 구조 지원)
                 const ordersRef = ref(database, "orders");
-                const ordersQuery = query(ordersRef, orderByChild("createdAt"));
-                onValue(ordersQuery, (snapshot) => {
+                onValue(ordersRef, (snapshot) => {
                     const data = snapshot.val();
 
                     // 필터 상태가 있으면 해당 필터 적용, 없으면 전체 표시
@@ -1619,17 +1722,8 @@
                 function applyCurrentFilter(data) {
                     if (!data || !currentFilterState.type) return;
 
-                    // 월별 폴더 구조에서 모든 주문 수집
-                    let allEntries = [];
-                    for (const [yearMonth, monthOrders] of Object.entries(
-                        data
-                    )) {
-                        if (monthOrders && typeof monthOrders === "object") {
-                            const monthOrderEntries =
-                                Object.entries(monthOrders);
-                            allEntries = allEntries.concat(monthOrderEntries);
-                        }
-                    }
+                    // 모든 구조에서 주문 수집 (공통 함수 사용)
+                    const allEntries = collectAllOrders(data);
                     let filteredEntries = allEntries;
 
                     switch (currentFilterState.type) {
@@ -1741,27 +1835,29 @@
                         const allSnap = await get(ref(database, "orders"));
                         const all = allSnap.val() || {};
 
+                        // 모든 구조에서 주문 수집 (공통 함수 사용)
+                        const allOrders = collectAllOrders(all);
+
                         // 해당 주문번호와 관련된 모든 주문 찾기
                         const relatedOrders = [];
 
                         // 1. 원주문 찾기
-                        const originalOrder = Object.values(all).find(
-                            (order) =>
+                        const originalOrderEntry = allOrders.find(
+                            ([id, order]) =>
                                 order && order.orderNumber === orderNumber
                         );
 
-                        if (originalOrder) {
+                        if (originalOrderEntry) {
+                            const [id, order] = originalOrderEntry;
                             relatedOrders.push({
-                                id: Object.keys(all).find(
-                                    (key) => all[key] === originalOrder
-                                ),
-                                order: originalOrder,
+                                id: id,
+                                order: order,
                                 type: "원주문",
                             });
                         }
 
                         // 2. 관련 클레임들 찾기 (교환/반품/취소)
-                        Object.entries(all).forEach(([id, order]) => {
+                        allOrders.forEach(([id, order]) => {
                             if (
                                 order &&
                                 order.existingOrderNumber === orderNumber
@@ -2142,8 +2238,11 @@
                         const allSnap = await get(ref(database, "orders"));
                         const all = allSnap.val() || {};
 
+                        // 모든 구조에서 주문 수집 (공통 함수 사용)
+                        const allOrders = collectAllOrders(all);
+
                         const orderNumberToId = new Map();
-                        Object.entries(all).forEach(([id, o]) => {
+                        allOrders.forEach(([id, o]) => {
                             if (o && o.orderNumber)
                                 orderNumberToId.set(o.orderNumber, id);
                         });
@@ -2174,46 +2273,48 @@
                                     continue;
                                 }
 
-                                // 클레임 체크: 해당 주문에 대한 교환/반품/취소가 접수/배송중인지 확인
-                                const relatedClaims = Object.values(all).filter(
-                                    (o) =>
-                                        o &&
-                                        o.existingOrderNumber ===
-                                            order.orderNumber &&
-                                        (o.orderType === "교환" ||
-                                            o.orderType === "반품" ||
-                                            o.orderType === "취소") &&
-                                        (o.status === "접수" ||
-                                            o.status === "배송중")
-                                );
+                                // 클레임 체크: 해당 주문에 대한 교환/반품/취소가 접수/배송중인지 확인 (월별 폴더 구조)
+                                const relatedClaims = allOrders
+                                    .filter(
+                                        ([id, o]) =>
+                                            o &&
+                                            o.existingOrderNumber ===
+                                                order.orderNumber &&
+                                            (o.orderType === "교환" ||
+                                                o.orderType === "반품" ||
+                                                o.orderType === "취소") &&
+                                            (o.status === "접수" ||
+                                                o.status === "배송중")
+                                    )
+                                    .map(([id, o]) => o);
 
-                                // 송장 정보 업데이트
-                                await set(
-                                    ref(database, `orders/${orderId}/courier`),
-                                    courier
-                                );
-                                await set(
-                                    ref(
-                                        database,
-                                        `orders/${orderId}/invoiceNumber`
-                                    ),
-                                    invoice
-                                );
-
-                                // 클레임이 없으면 배송중으로 자동 전환
-                                if (relatedClaims.length === 0) {
+                                // 송장 정보 업데이트 (월별 폴더 구조)
+                                const orderPath = await findOrderPath(orderId);
+                                if (orderPath) {
+                                    await set(
+                                        ref(database, `${orderPath}/courier`),
+                                        courier
+                                    );
                                     await set(
                                         ref(
                                             database,
-                                            `orders/${orderId}/status`
+                                            `${orderPath}/invoiceNumber`
                                         ),
+                                        invoice
+                                    );
+                                }
+
+                                // 클레임이 없으면 배송중으로 자동 전환 (월별 폴더 구조)
+                                if (relatedClaims.length === 0 && orderPath) {
+                                    await set(
+                                        ref(database, `${orderPath}/status`),
                                         "배송중"
                                     );
                                     // 배송 시작 시간 기록 (3일 후 자동 완료용)
                                     await set(
                                         ref(
                                             database,
-                                            `orders/${orderId}/shippingStartTime`
+                                            `${orderPath}/shippingStartTime`
                                         ),
                                         Date.now()
                                     );
@@ -2367,23 +2468,19 @@
 
                 // 주문 테이블 업데이트 (월별 폴더 구조 지원)
                 function updateOrdersTable(data) {
+                    console.log("updateOrdersTable 호출됨, 데이터:", data);
+
                     if (!data) {
+                        console.log("데이터가 없음");
                         allFilteredData = [];
                         updatePagination();
                         return;
                     }
 
-                    // 월별 폴더 구조에서 모든 주문 수집
-                    let allEntries = [];
-                    for (const [yearMonth, monthOrders] of Object.entries(
-                        data
-                    )) {
-                        if (monthOrders && typeof monthOrders === "object") {
-                            const monthOrderEntries =
-                                Object.entries(monthOrders);
-                            allEntries = allEntries.concat(monthOrderEntries);
-                        }
-                    }
+                    // 모든 구조에서 주문 수집 (공통 함수 사용)
+                    const allEntries = collectAllOrders(data);
+
+                    console.log("전체 수집된 주문들:", allEntries);
 
                     allFilteredData = filterOrdersData(allEntries).sort(
                         (a, b) => {
@@ -2472,10 +2569,24 @@
                 // 주문 상태 업데이트 (클레임 사전 확인 포함)
                 window.updateOrderStatus = async function (orderId, newStatus) {
                     try {
-                        // 대상 주문 조회
-                        const orderSnap = await get(
-                            ref(database, `orders/${orderId}`)
-                        );
+                        console.log("상태 업데이트 시작:", orderId, newStatus);
+
+                        // 대상 주문 조회 (월별 폴더 구조)
+                        const orderPath = await findOrderPath(orderId);
+                        console.log("찾은 주문 경로:", orderPath);
+
+                        if (!orderPath) {
+                            console.error(
+                                "주문 경로를 찾을 수 없습니다:",
+                                orderId
+                            );
+                            alert(
+                                "주문을 찾을 수 없습니다. 페이지를 새로고침해주세요."
+                            );
+                            return;
+                        }
+
+                        const orderSnap = await get(ref(database, orderPath));
                         const order = orderSnap.val();
                         if (!order) return;
 
@@ -2484,19 +2595,25 @@
                             newStatus === "배송중" ||
                             newStatus === "배송완료"
                         ) {
+                            // 월별 폴더 구조에서 관련 클레임 검색
                             const allSnap = await get(ref(database, `orders`));
                             const all = allSnap.val() || {};
-                            const relatedClaims = Object.values(all).filter(
-                                (o) =>
-                                    o &&
-                                    o.existingOrderNumber ===
-                                        order.orderNumber &&
-                                    (o.orderType === "교환" ||
-                                        o.orderType === "반품" ||
-                                        o.orderType === "취소") &&
-                                    (o.status === "접수" ||
-                                        o.status === "배송중")
-                            );
+
+                            const allOrders = collectAllOrders(all);
+
+                            const relatedClaims = allOrders
+                                .filter(
+                                    ([id, o]) =>
+                                        o &&
+                                        o.existingOrderNumber ===
+                                            order.orderNumber &&
+                                        (o.orderType === "교환" ||
+                                            o.orderType === "반품" ||
+                                            o.orderType === "취소") &&
+                                        (o.status === "접수" ||
+                                            o.status === "배송중")
+                                )
+                                .map(([id, o]) => o);
 
                             if (relatedClaims.length > 0) {
                                 const proceed = confirm(
@@ -2508,12 +2625,14 @@
                             }
                         }
 
-                        // 상태 업데이트 실행
-                        const statusRef = ref(
-                            database,
-                            `orders/${orderId}/status`
-                        );
-                        await set(statusRef, newStatus);
+                        // 상태 업데이트 실행 (월별 폴더 구조)
+                        if (orderPath) {
+                            const statusRef = ref(
+                                database,
+                                `${orderPath}/status`
+                            );
+                            await set(statusRef, newStatus);
+                        }
 
                         // 상태 업데이트 후 현재 필터 상태 유지
                         // 실시간 리스너가 자동으로 필터를 적용함
@@ -2545,18 +2664,8 @@
                     const tomorrow = new Date(today);
                     tomorrow.setDate(tomorrow.getDate() + 1);
 
-                    // 항상 전체 데이터를 기준으로 통계 계산 (월별 폴더 구조 지원)
-                    let allEntries = [];
-                    for (const [yearMonth, monthOrders] of Object.entries(
-                        data
-                    )) {
-                        if (monthOrders && typeof monthOrders === "object") {
-                            const monthOrderEntries =
-                                Object.entries(monthOrders);
-                            allEntries = allEntries.concat(monthOrderEntries);
-                        }
-                    }
-                    const entries = allEntries;
+                    // 항상 전체 데이터를 기준으로 통계 계산 (공통 함수 사용)
+                    const entries = collectAllOrders(data);
 
                     // 오늘 신규주문만 날짜 필터 적용
                     const todayOrders = entries.filter(([id, order]) => {
@@ -2691,12 +2800,8 @@
                 // 필터 적용
                 window.filterOrders = function () {
                     const ordersRef = ref(database, "orders");
-                    const ordersQuery = query(
-                        ordersRef,
-                        orderByChild("createdAt")
-                    );
                     onValue(
-                        ordersQuery,
+                        ordersRef,
                         (snapshot) => {
                             const data = snapshot.val();
                             updateOrdersTable(data);
@@ -2718,12 +2823,8 @@
 
                     // 주문 데이터 새로고침
                     const ordersRef = ref(database, "orders");
-                    const ordersQuery = query(
-                        ordersRef,
-                        orderByChild("createdAt")
-                    );
                     onValue(
-                        ordersQuery,
+                        ordersRef,
                         (snapshot) => {
                             const data = snapshot.val();
                             updateOrdersTable(data);
@@ -2863,12 +2964,8 @@
 
                     // 전체 주문 데이터 다시 로드
                     const ordersRef = ref(database, "orders");
-                    const ordersQuery = query(
-                        ordersRef,
-                        orderByChild("createdAt")
-                    );
                     onValue(
-                        ordersQuery,
+                        ordersRef,
                         (snapshot) => {
                             const data = snapshot.val();
                             updateOrdersTable(data);
@@ -2928,12 +3025,8 @@
                 // 신규주문 진행중 커스텀 필터링
                 function filterNewOrdersInProgressCustom() {
                     const ordersRef = ref(database, "orders");
-                    const ordersQuery = query(
-                        ordersRef,
-                        orderByChild("createdAt")
-                    );
                     onValue(
-                        ordersQuery,
+                        ordersRef,
                         (snapshot) => {
                             const data = snapshot.val();
                             if (!data) {
@@ -2941,7 +3034,9 @@
                                 return;
                             }
 
-                            const entries = Object.entries(data);
+                            // 모든 구조에서 주문 수집 (공통 함수 사용)
+                            const allEntries = collectAllOrders(data);
+                            const entries = allEntries;
                             console.log(
                                 "전체 주문 데이터:",
                                 entries.length,
@@ -3002,12 +3097,8 @@
                 // 교환접수 진행중 커스텀 필터링
                 function filterExchangeInProgressCustom() {
                     const ordersRef = ref(database, "orders");
-                    const ordersQuery = query(
-                        ordersRef,
-                        orderByChild("createdAt")
-                    );
                     onValue(
-                        ordersQuery,
+                        ordersRef,
                         (snapshot) => {
                             const data = snapshot.val();
                             if (!data) {
@@ -3015,7 +3106,9 @@
                                 return;
                             }
 
-                            const entries = Object.entries(data);
+                            // 모든 구조에서 주문 수집 (공통 함수 사용)
+                            const allEntries = collectAllOrders(data);
+                            const entries = allEntries;
                             console.log(
                                 "전체 주문 데이터:",
                                 entries.length,
@@ -3073,12 +3166,8 @@
                 // 반품접수 진행중 커스텀 필터링
                 function filterReturnInProgressCustom() {
                     const ordersRef = ref(database, "orders");
-                    const ordersQuery = query(
-                        ordersRef,
-                        orderByChild("createdAt")
-                    );
                     onValue(
-                        ordersQuery,
+                        ordersRef,
                         (snapshot) => {
                             const data = snapshot.val();
                             if (!data) {
@@ -3086,7 +3175,9 @@
                                 return;
                             }
 
-                            const entries = Object.entries(data);
+                            // 모든 구조에서 주문 수집 (공통 함수 사용)
+                            const allEntries = collectAllOrders(data);
+                            const entries = allEntries;
                             console.log(
                                 "전체 주문 데이터:",
                                 entries.length,
@@ -3144,12 +3235,8 @@
                 // 취소요청 진행중 커스텀 필터링
                 function filterCancelInProgressCustom() {
                     const ordersRef = ref(database, "orders");
-                    const ordersQuery = query(
-                        ordersRef,
-                        orderByChild("createdAt")
-                    );
                     onValue(
-                        ordersQuery,
+                        ordersRef,
                         (snapshot) => {
                             const data = snapshot.val();
                             if (!data) {
@@ -3157,7 +3244,9 @@
                                 return;
                             }
 
-                            const entries = Object.entries(data);
+                            // 모든 구조에서 주문 수집 (공통 함수 사용)
+                            const allEntries = collectAllOrders(data);
+                            const entries = allEntries;
                             console.log(
                                 "전체 주문 데이터:",
                                 entries.length,
@@ -3215,12 +3304,8 @@
                 // 교환/반품/취소 진행중 커스텀 필터링 (기존 함수 유지)
                 function filterExchangeReturnInProgressCustom() {
                     const ordersRef = ref(database, "orders");
-                    const ordersQuery = query(
-                        ordersRef,
-                        orderByChild("createdAt")
-                    );
                     onValue(
-                        ordersQuery,
+                        ordersRef,
                         (snapshot) => {
                             const data = snapshot.val();
                             if (!data) {
@@ -3228,7 +3313,9 @@
                                 return;
                             }
 
-                            const entries = Object.entries(data);
+                            // 모든 구조에서 주문 수집 (공통 함수 사용)
+                            const allEntries = collectAllOrders(data);
+                            const entries = allEntries;
                             console.log(
                                 "전체 주문 데이터:",
                                 entries.length,
@@ -3293,12 +3380,8 @@
                 // 커스텀 상태 필터링 (여러 상태 동시 지원)
                 function filterOrdersWithCustomStatus(allowedStatuses) {
                     const ordersRef = ref(database, "orders");
-                    const ordersQuery = query(
-                        ordersRef,
-                        orderByChild("createdAt")
-                    );
                     onValue(
-                        ordersQuery,
+                        ordersRef,
                         (snapshot) => {
                             const data = snapshot.val();
                             if (!data) {
@@ -3306,7 +3389,9 @@
                                 return;
                             }
 
-                            const entries = Object.entries(data);
+                            // 모든 구조에서 주문 수집 (공통 함수 사용)
+                            const allEntries = collectAllOrders(data);
+                            const entries = allEntries;
                             const filteredEntries = entries.filter(
                                 ([id, order]) => {
                                     // 주문유형 필터 (신규주문)
@@ -3346,12 +3431,8 @@
                     allowedStatuses
                 ) {
                     const ordersRef = ref(database, "orders");
-                    const ordersQuery = query(
-                        ordersRef,
-                        orderByChild("createdAt")
-                    );
                     onValue(
-                        ordersQuery,
+                        ordersRef,
                         (snapshot) => {
                             const data = snapshot.val();
                             if (!data) {
@@ -3359,7 +3440,9 @@
                                 return;
                             }
 
-                            const entries = Object.entries(data);
+                            // 모든 구조에서 주문 수집 (공통 함수 사용)
+                            const allEntries = collectAllOrders(data);
+                            const entries = allEntries;
                             console.log(
                                 "전체 주문 데이터:",
                                 entries.length,
@@ -3441,24 +3524,32 @@
                         return;
                     }
 
-                    // 모든 주문을 한 번만 로드
+                    // 모든 주문을 한 번만 로드 (월별 폴더 구조)
                     const allSnap = await get(ref(database, `orders`));
                     const all = allSnap.val() || {};
+
+                    // 모든 구조에서 주문 수집 (공통 함수 사용)
+                    const allOrders = collectAllOrders(all);
 
                     // 선택된 주문들의 상세 수집
                     const selectedOrders = [];
                     for (const checkbox of checkboxes) {
                         const orderId = checkbox.value;
-                        const order = all[orderId];
-                        if (order) selectedOrders.push({ orderId, order });
+                        const orderEntry = allOrders.find(
+                            ([id, order]) => id === orderId
+                        );
+                        if (orderEntry) {
+                            const [id, order] = orderEntry;
+                            selectedOrders.push({ orderId: id, order });
+                        }
                     }
 
                     // 클레임 감지 (배송중/배송완료 처리 시만 의미 있음)
                     let claimAffected = [];
                     if (newStatus === "배송중" || newStatus === "배송완료") {
                         claimAffected = selectedOrders.filter(({ order }) => {
-                            return Object.values(all).some(
-                                (o) =>
+                            return allOrders.some(
+                                ([id, o]) =>
                                     o &&
                                     o.existingOrderNumber ===
                                         order.orderNumber &&
@@ -3503,12 +3594,15 @@
                             continue;
                         }
                         try {
-                            const statusRef = ref(
-                                database,
-                                `orders/${orderId}/status`
-                            );
-                            await set(statusRef, newStatus);
-                            successCount++;
+                            const orderPath = await findOrderPath(orderId);
+                            if (orderPath) {
+                                const statusRef = ref(
+                                    database,
+                                    `${orderPath}/status`
+                                );
+                                await set(statusRef, newStatus);
+                                successCount++;
+                            }
                         } catch (error) {
                             console.error("상태 업데이트 오류:", error);
                             errorCount++;
@@ -3588,17 +3682,8 @@
                     const now = new Date();
                     let completedCount = 0;
 
-                    // 월별 폴더 구조에서 모든 주문 수집
-                    let allEntries = [];
-                    for (const [yearMonth, monthOrders] of Object.entries(
-                        data
-                    )) {
-                        if (monthOrders && typeof monthOrders === "object") {
-                            const monthOrderEntries =
-                                Object.entries(monthOrders);
-                            allEntries = allEntries.concat(monthOrderEntries);
-                        }
-                    }
+                    // 모든 구조에서 주문 수집 (공통 함수 사용)
+                    const allEntries = collectAllOrders(data);
 
                     for (const [id, order] of allEntries) {
                         // 배송중 상태이고 배송 시작 시간이 있는 주문
@@ -3617,20 +3702,26 @@
                             // 3영업일이 지났는지 확인
                             if (now >= expectedCompletionDate) {
                                 try {
-                                    // 배송완료로 상태 변경
-                                    await set(
-                                        ref(database, `orders/${id}/status`),
-                                        "배송완료"
-                                    );
-                                    // 자동 완료 시간 기록
-                                    await set(
-                                        ref(
-                                            database,
-                                            `orders/${id}/autoCompletedTime`
-                                        ),
-                                        Date.now()
-                                    );
-                                    completedCount++;
+                                    // 배송완료로 상태 변경 (월별 폴더 구조)
+                                    const orderPath = await findOrderPath(id);
+                                    if (orderPath) {
+                                        await set(
+                                            ref(
+                                                database,
+                                                `${orderPath}/status`
+                                            ),
+                                            "배송완료"
+                                        );
+                                        // 자동 완료 시간 기록
+                                        await set(
+                                            ref(
+                                                database,
+                                                `${orderPath}/autoCompletedTime`
+                                            ),
+                                            Date.now()
+                                        );
+                                        completedCount++;
+                                    }
 
                                     console.log(
                                         `주문 ${order.orderNumber}이(가) 3영업일 후 자동으로 배송완료 처리되었습니다.`
