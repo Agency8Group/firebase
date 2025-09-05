@@ -1347,7 +1347,7 @@
                 }
             });
 
-            // 기존 주문 검색
+            // 기존 주문 검색 (월별 폴더 구조에서 검색)
             async function findExistingOrder(orderNumber, phone = "") {
                 try {
                     const ordersRef = ref(database, "orders");
@@ -1356,19 +1356,29 @@
 
                     if (!data) return null;
 
-                    const orders = Object.entries(data);
+                    // 모든 월별 폴더에서 주문 검색
+                    let allOrders = [];
+                    for (const [yearMonth, monthOrders] of Object.entries(
+                        data
+                    )) {
+                        if (monthOrders && typeof monthOrders === "object") {
+                            const monthOrderEntries =
+                                Object.entries(monthOrders);
+                            allOrders = allOrders.concat(monthOrderEntries);
+                        }
+                    }
                     let existingOrder;
 
                     if (phone) {
                         // 휴대폰번호와 주문번호 모두로 검색 (주문 접수 시)
-                        existingOrder = orders.find(
+                        existingOrder = allOrders.find(
                             ([id, order]) =>
                                 order.orderNumber === orderNumber &&
                                 order.phone === phone
                         );
                     } else {
                         // 주문번호만으로 검색 (자동 정보 로드 시)
-                        existingOrder = orders.find(
+                        existingOrder = allOrders.find(
                             ([id, order]) => order.orderNumber === orderNumber
                         );
                     }
@@ -1917,8 +1927,12 @@
                     const orderData = modal.orderData;
 
                     try {
-                        // Firebase에 주문 저장
-                        const ordersRef = ref(database, "orders");
+                        // Firebase에 주문 저장 (월별 폴더 구조)
+                        const now = new Date();
+                        const yearMonth = `${now.getFullYear()}-${String(
+                            now.getMonth() + 1
+                        ).padStart(2, "0")}`;
+                        const ordersRef = ref(database, `orders/${yearMonth}`);
                         await push(ordersRef, orderData);
 
                         // 모달 닫기
