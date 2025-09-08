@@ -5,8 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>0000셀러 주문 관리자 페이지</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-        <!-- 설정 파일 제거: 모바일/배포 환경에서 로딩 이슈 방지 -->
-        <!-- <script src="config.js"></script> -->
+        <!-- 설정 파일 (Firebase 설정 로드) -->
+        <script src="config.js"></script>
         <!-- Firebase Authentication SDK 추가 -->
         <script type="module">
             import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
@@ -17,18 +17,8 @@
                 onAuthStateChanged,
             } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-            // Firebase 설정 (하드코딩)
-            const firebaseConfig = {
-                apiKey: "AIzaSyA4Z1B42fmBIJznBED11XIIiVVKN5OSQ1E",
-                authDomain: "seller1-b8a4c.firebaseapp.com",
-                projectId: "seller1-b8a4c",
-                storageBucket: "seller1-b8a4c.firebasestorage.app",
-                messagingSenderId: "740000823974",
-                appId: "1:740000823974:web:ac62ca392ffb34e96e9267",
-                measurementId: "G-Q8ZNT6PDB9",
-                databaseURL:
-                    "https://seller1-b8a4c-default-rtdb.asia-southeast1.firebasedatabase.app",
-            };
+            // Firebase 설정 (config.js에서 로드)
+            const firebaseConfig = window.firebaseConfig;
 
             // Firebase 초기화
             const app = initializeApp(firebaseConfig);
@@ -37,10 +27,6 @@
             // 전역 변수로 auth와 app 객체 설정
             window.auth = auth;
             window.app = app;
-            // Firebase 초기화 완료 이벤트 디스패치 (다른 모듈에서 대기)
-            try {
-                window.dispatchEvent(new CustomEvent("firebase-ready"));
-            } catch (_) {}
 
             // 인증 상태 변경 감지
             // 초기 렌더링 시 모달 깜빡임 방지: DOMContentLoaded 이후에 상태 반영
@@ -1576,20 +1562,7 @@
                 import * as XLSX from "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm";
 
                 // Firebase 설정은 이미 head에서 초기화됨
-                // 초기화 완료 이벤트를 대기 후 DB 인스턴스 생성
-                let database;
-                if (window.app) {
-                    database = getDatabase(window.app);
-                } else {
-                    await new Promise((resolve) => {
-                        const onReady = () => {
-                            window.removeEventListener("firebase-ready", onReady);
-                            resolve();
-                        };
-                        window.addEventListener("firebase-ready", onReady, { once: true });
-                    });
-                    database = getDatabase(window.app);
-                }
+                const database = getDatabase(window.app);
 
                 // DOM 요소들
                 const statusDiv = document.getElementById("status");
