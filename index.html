@@ -1675,8 +1675,67 @@
                 .getElementById("quantity")
                 ?.closest(".field");
 
+            // 라디오 전환 시 공통 입력값 초기화 (이미 기입된 값으로 인해 폼이 안 바뀌는 현상 방지)
+            function resetFormValuesOnOrderTypeChange() {
+                try {
+                    const fieldsToClearOnChange = [
+                        "existingOrderNumber",
+                        "customerName",
+                        "phone",
+                        "zipcode",
+                        "address",
+                        "detailAddress",
+                        "memo",
+                        "refundAccount",
+                        "product",
+                        "quantity",
+                    ];
+                    fieldsToClearOnChange.forEach((fieldId) => {
+                        const el = document.getElementById(fieldId);
+                        if (el && typeof el.value === "string") el.value = "";
+                    });
+                } catch (_) {
+                    // no-op
+                }
+            }
+
+            // 상단 토스트 안내
+            function showInlineNotice(message) {
+                let toast = document.getElementById("inlineToastNotice");
+                if (!toast) {
+                    toast = document.createElement("div");
+                    toast.id = "inlineToastNotice";
+                    toast.style.position = "fixed";
+                    toast.style.top = "12px";
+                    toast.style.left = "50%";
+                    toast.style.transform = "translateX(-50%)";
+                    toast.style.zIndex = "9999";
+                    toast.style.maxWidth = "90%";
+                    toast.style.background = "#212529";
+                    toast.style.color = "#fff";
+                    toast.style.padding = "10px 14px";
+                    toast.style.borderRadius = "8px";
+                    toast.style.boxShadow = "0 4px 12px rgba(0,0,0,0.2)";
+                    toast.style.fontSize = "14px";
+                    toast.style.lineHeight = "1.4";
+                    toast.style.opacity = "0";
+                    toast.style.transition = "opacity .2s ease";
+                    document.body.appendChild(toast);
+                }
+                toast.textContent = message;
+                requestAnimationFrame(() => {
+                    toast.style.opacity = "1";
+                });
+                clearTimeout(window.__inlineToastTimer);
+                window.__inlineToastTimer = setTimeout(() => {
+                    toast.style.opacity = "0";
+                }, 2200);
+            }
+
             orderTypeRadios.forEach((radio) => {
                 radio.addEventListener("change", async function () {
+                    // 전환 시점에 입력값 초기화 (기입된 값으로 인해 폼이 안 바뀌는 경우 방지)
+                    resetFormValuesOnOrderTypeChange();
                     const memoLabel =
                         document.querySelector('label[for="memo"]');
                     const memoInput = document.getElementById("memo");
@@ -1718,6 +1777,28 @@
                         if (submitBtn) {
                             submitBtn.disabled = false;
                             submitBtn.textContent = "🔍 배송조회하기";
+                        }
+                        showInlineNotice("배송조회 모드입니다. 주문번호만 입력해 주세요.");
+                        // 조회 전 기존 입력값 초기화 (주문번호 포함)
+                        try {
+                            const fieldsToClear = [
+                                "customerName",
+                                "phone",
+                                "zipcode",
+                                "address",
+                                "detailAddress",
+                                "memo",
+                                "refundAccount",
+                                "product",
+                                "quantity",
+                            ];
+                            fieldsToClear.forEach((fieldId) => {
+                                const el = document.getElementById(fieldId);
+                                if (el) el.value = "";
+                            });
+                            existingOrderInput.value = "";
+                        } catch (_) {
+                            // no-op: 초기화 실패해도 기존 로직에는 영향 주지 않음
                         }
                         return;
                     }
@@ -1772,6 +1853,14 @@
                         if (productField) productField.style.display = "block";
                         if (quantityField)
                             quantityField.style.display = "block";
+                        // 안전상 제품/수량도 초기화 (신규주문에서 넘어온 값 제거)
+                        try {
+                            const pq = ["product", "quantity"];
+                            pq.forEach((id) => {
+                                const el = document.getElementById(id);
+                                if (el) el.value = "";
+                            });
+                        } catch (_) {}
 
                         // 필수 해제 (숨긴 필드들)
                         if (customerNameInput)
@@ -1782,6 +1871,7 @@
                         memoLabel.textContent = "요청사항";
                         memoInput.placeholder =
                             "교환/반품/취소 사유를 입력해주세요";
+                        showInlineNotice(`${this.value} 모드입니다. 기존 주문번호를 입력해 주세요.`);
 
                         // 필드 초기화
                         document.getElementById("customerName").value = "";
@@ -1833,6 +1923,7 @@
                         memoLabel.textContent = "배송메세지";
                         memoInput.placeholder =
                             "배송 관련 요청사항을 입력해주세요";
+                        showInlineNotice("신규주문 모드입니다. 고객 정보와 상품 정보를 입력해 주세요.");
                         if (submitBtn) {
                             submitBtn.disabled = false;
                             submitBtn.textContent = "📦 주문 접수하기";
