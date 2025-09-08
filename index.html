@@ -30,6 +30,9 @@
                     "https://seller1-b8a4c-default-rtdb.asia-southeast1.firebasedatabase.app",
             };
 
+            // REST 폴백용 전역 DB URL 노출
+            window.firebaseDatabaseURL = firebaseConfig.databaseURL;
+
             // Firebase 초기화
             const app = initializeApp(firebaseConfig);
             const auth = getAuth(app);
@@ -1285,6 +1288,140 @@
                 }
             });
 
+            // RTDB → REST 자동 폴백 유틸
+            async function getOrdersWithFallback() {
+                try {
+                    const ordersRef = ref(database, "orders");
+                    const snapshot = await get(ordersRef);
+                    // RTDB 경로 성공 시, 인디케이터는 onValue로 갱신됨
+                    return snapshot.val();
+                } catch (err) {
+                    try {
+                        const base = (window.firebaseDatabaseURL || "").replace(/\/$/, "");
+                        const res = await fetch(`${base}/orders.json`);
+                        if (!res.ok) throw new Error(`REST ${res.status}`);
+                        const json = await res.json();
+                        // REST 경로 성공: UI 인디케이터를 연결됨으로 표시 (소켓 미연결 보완)
+                        try {
+                            const statusDiv = document.getElementById("status");
+                            if (statusDiv) statusDiv.className = "status-indicator connected";
+                        } catch (_) {}
+                        return json;
+                    } catch (restErr) {
+                        console.error("Orders fetch failed (RTDB & REST)", err, restErr);
+                        throw restErr;
+                    }
+                }
+            }
+
+            // 기존 주문 검색 (월별 폴더 구조에서 검색)
+            async function findExistingOrder(orderNumber, phone = "") {
+                try {
+                    const data = await getOrdersWithFallback();
+
+                    if (!data) return null;
+
+                    // 모든 월별 폴더에서 주문 검색
+                    let allOrders = [];
+                    for (const [yearMonth, monthOrders] of Object.entries(
+                        data
+                    )) {
+                        if (monthOrders && typeof monthOrders === "object") {
+                            const monthOrderEntries =
+                                Object.entries(monthOrders);
+                            allOrders = allOrders.concat(monthOrderEntries);
+                        }
+                    }
+                    let existingOrder;
+
+                    if (phone) {
+                        // 휴대폰번호와 주문번호 모두로 검색 (주문 접수 시)
+                        existingOrder = allOrders.find(
+                            ([id, order]) =>
+                                order.orderNumber === orderNumber &&
+                                order.phone === phone
+                        );
+                    } else {
+                        // 주문번호만으로 검색 (자동 정보 로드 시)
+                        existingOrder = allOrders.find(
+                            ([id, order]) => order.orderNumber === orderNumber
+                        );
+                    }
+
+                    return existingOrder ? existingOrder[1] : null;
+                } catch (error) {
+                    console.error("기존 주문 검색 오류:", error);
+                    return null;
+                }
+            }
+
+            // 주문 상태에 따른 교환/반품/취소 처리 제한 함수
+            async function checkOrderStatusForClaim(orderNumber, claimType) {
+                try {
+                    const data = await getOrdersWithFallback();
+
+                    if (!data)
+                        return {
+                            canProcess: false,
+                            reason: "주문 데이터를 찾을 수 없습니다.",
+                        };
+
+                    // 월별 폴더 구조에서 모든 주문 검색
+                    let allOrders = [];
+                    for (const [yearMonth, monthOrders] of Object.entries(
+                        data
+                    )) {
+                        if (monthOrders && typeof monthOrders === "object") {
+                            const monthOrderEntries =
+                                Object.entries(monthOrders);
+                            allOrders = allOrders.concat(monthOrderEntries);
+                        }
+                    }
+
+                    // 해당 주문번호로 원본 주문 찾기
+                    const originalOrder = allOrders.find(
+                        ([id, order]) => order.orderNumber === orderNumber
+                    );
+
+                    if (!originalOrder) {
+                        return {
+                            canProcess: false,
+                            reason: "해당 주문번호를 찾을 수 없습니다.",
+                        };
+                    }
+
+                    const status = originalOrder[1].status;
+
+                    // 취소는 접수 상태에서만 가능
+                    if (claimType === "취소") {
+                        if (status !== "접수") {
+                            return {
+                                canProcess: false,
+                                reason: `취소는 접수 상태에서만 가능합니다. (현재 상태: ${status})`,
+                            };
+                        }
+                    }
+
+                    // 교환/반품은 배송완료 상태에서만 가능
+                    if (claimType === "교환" || claimType === "반품") {
+                        if (status !== "배송완료") {
+                            return {
+                                canProcess: false,
+                                reason: `교환/반품은 배송완료 상태에서만 가능합니다. (현재 상태: ${status})`,
+                            };
+                        }
+                    }
+
+                    return { canProcess: true };
+                } catch (error) {
+                    console.error("주문 상태 확인 오류:", error);
+                    return {
+                        canProcess: false,
+                        reason: "주문 상태 확인 중 오류가 발생했습니다.",
+                    };
+                }
+            }
+
             // 주문 접수 처리
             orderForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
@@ -1369,49 +1506,6 @@
                     submitBtn.textContent = "📦 주문 접수하기";
                 }
             });
-
-            // 기존 주문 검색 (월별 폴더 구조에서 검색)
-            async function findExistingOrder(orderNumber, phone = "") {
-                try {
-                    const ordersRef = ref(database, "orders");
-                    const snapshot = await get(ordersRef);
-                    const data = snapshot.val();
-
-                    if (!data) return null;
-
-                    // 모든 월별 폴더에서 주문 검색
-                    let allOrders = [];
-                    for (const [yearMonth, monthOrders] of Object.entries(
-                        data
-                    )) {
-                        if (monthOrders && typeof monthOrders === "object") {
-                            const monthOrderEntries =
-                                Object.entries(monthOrders);
-                            allOrders = allOrders.concat(monthOrderEntries);
-                        }
-                    }
-                    let existingOrder;
-
-                    if (phone) {
-                        // 휴대폰번호와 주문번호 모두로 검색 (주문 접수 시)
-                        existingOrder = allOrders.find(
-                            ([id, order]) =>
-                                order.orderNumber === orderNumber &&
-                                order.phone === phone
-                        );
-                    } else {
-                        // 주문번호만으로 검색 (자동 정보 로드 시)
-                        existingOrder = allOrders.find(
-                            ([id, order]) => order.orderNumber === orderNumber
-                        );
-                    }
-
-                    return existingOrder ? existingOrder[1] : null;
-                } catch (error) {
-                    console.error("기존 주문 검색 오류:", error);
-                    return null;
-                }
-            }
 
             // 주문 유형에 따른 상태 설정
             function getStatusByOrderType(orderType) {
@@ -1613,9 +1707,7 @@
             // 주문 상태에 따른 교환/반품/취소 처리 제한 함수
             async function checkOrderStatusForClaim(orderNumber, claimType) {
                 try {
-                    const ordersRef = ref(database, "orders");
-                    const snapshot = await get(ordersRef);
-                    const data = snapshot.val();
+                    const data = await getOrdersWithFallback();
 
                     if (!data)
                         return {
