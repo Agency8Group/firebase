@@ -594,6 +594,19 @@
                     font-weight: 500;
                 }
 
+                /* 모바일: 메시지를 하단 고정 토스트로 표시 */
+                #message {
+                    position: fixed;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    bottom: calc(env(safe-area-inset-bottom) + 12px);
+                    width: calc(100% - 24px);
+                    max-width: 520px;
+                    z-index: 1101;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+                    backdrop-filter: saturate(120%) blur(2px);
+                }
+
                 /* 모바일에서 처리 제한 안내 개선 */
                 #processingLimits {
                     margin-top: 12px;
@@ -1550,9 +1563,12 @@
                 messageDiv.className = `msg ${type}`;
                 messageDiv.style.display = "block";
 
+                // 모든 메시지 노출 시간을 10초로 통일
+                let duration = 10000;
+
                 setTimeout(() => {
                     messageDiv.style.display = "none";
-                }, 5000);
+                }, duration);
             }
 
             // 연락처 자동 포맷팅
