@@ -1348,6 +1348,29 @@
             });
 
             // 기존 주문 검색 (월별 폴더 구조에서 검색)
+            function normalizeOrderNumber(input) {
+                try {
+                    if (!input) return "";
+                    // 제로폭/비가시 공백 제거 + 모든 공백/하이픈 제거 + 대문자화
+                    const cleaned = String(input)
+                        .replace(/[\u200B-\u200D\uFEFF]/g, "")
+                        .replace(/\s+/g, "")
+                        .replace(/-/g, "");
+                    return cleaned.toUpperCase();
+                } catch (_) {
+                    return String(input || "");
+                }
+            }
+
+            function normalizePhone(input) {
+                try {
+                    if (!input) return "";
+                    return String(input).replace(/[^0-9]/g, "");
+                } catch (_) {
+                    return String(input || "");
+                }
+            }
+
             async function findExistingOrder(orderNumber, phone = "") {
                 try {
                     const ordersRef = ref(database, "orders");
@@ -1369,18 +1392,22 @@
                     }
                     let existingOrder;
 
+                    const targetOrder = normalizeOrderNumber(orderNumber);
+                    const targetPhone = normalizePhone(phone);
+
                     if (phone) {
-                        // 휴대폰번호와 주문번호 모두로 검색 (주문 접수 시)
-                        existingOrder = allOrders.find(
-                            ([id, order]) =>
-                                order.orderNumber === orderNumber &&
-                                order.phone === phone
-                        );
+                        // 휴대폰번호와 주문번호 모두로 검색 (정규화 일치)
+                        existingOrder = allOrders.find(([id, order]) => {
+                            const oNum = normalizeOrderNumber(order.orderNumber);
+                            const oPhone = normalizePhone(order.phone);
+                            return oNum === targetOrder && oPhone === targetPhone;
+                        });
                     } else {
-                        // 주문번호만으로 검색 (자동 정보 로드 시)
-                        existingOrder = allOrders.find(
-                            ([id, order]) => order.orderNumber === orderNumber
-                        );
+                        // 주문번호만으로 검색 (정규화 일치)
+                        existingOrder = allOrders.find(([id, order]) => {
+                            const oNum = normalizeOrderNumber(order.orderNumber);
+                            return oNum === targetOrder;
+                        });
                     }
 
                     return existingOrder ? existingOrder[1] : null;
@@ -1933,79 +1960,77 @@
             });
 
             // 기존 주문번호 입력 시 자동 정보 로드 및 상태 확인 (배송조회 제외)
-            document
-                .getElementById("existingOrderNumber")
-                .addEventListener("blur", async function () {
-                    const orderNumber = this.value.trim();
-                    const orderType = document.querySelector(
-                        'input[name="orderType"]:checked'
-                    ).value;
+            async function handleExistingOrderNumberEntered() {
+                const inputEl = document.getElementById("existingOrderNumber");
+                const raw = inputEl.value || "";
+                const orderNumber = normalizeOrderNumber(raw);
+                const orderType = document.querySelector(
+                    'input[name="orderType"]:checked'
+                ).value;
 
-                    // 교환/반품/취소인 경우 주문 상태 확인
-                    if (
-                        orderNumber &&
-                        orderType !== "신규주문" &&
-                        orderType !== "배송조회"
-                    ) {
-                        const statusCheck = await checkOrderStatusForClaim(
+                if (!orderNumber) return;
+
+                // 교환/반품/취소인 경우 주문 상태 확인
+                if (orderType !== "신규주문" && orderType !== "배송조회") {
+                    const statusCheck = await checkOrderStatusForClaim(
+                        orderNumber,
+                        orderType
+                    );
+                    if (!statusCheck.canProcess) {
+                        showMessage(`❌ ${statusCheck.reason}`, "error");
+                        return;
+                    }
+                }
+
+                if (orderType !== "신규주문" && orderType !== "배송조회") {
+                    try {
+                        const existingOrder = await findExistingOrder(
                             orderNumber,
-                            orderType
+                            ""
                         );
-                        if (!statusCheck.canProcess) {
-                            showMessage(`❌ ${statusCheck.reason}`, "error");
-                            // 선택된 주문유형을 그대로 유지 (되돌리지 않음)
-                            return;
-                        }
-                    }
+                        if (existingOrder) {
+                            document.getElementById("customerName").value =
+                                existingOrder.customerName;
+                            document.getElementById("phone").value =
+                                existingOrder.phone;
+                            document.getElementById("product").value =
+                                existingOrder.product;
+                            document.getElementById("quantity").value =
+                                existingOrder.quantity;
+                            document.getElementById("address").value =
+                                existingOrder.address || "";
+                            document.getElementById("detailAddress").value =
+                                existingOrder.detailAddress || "";
 
-                    if (
-                        orderNumber &&
-                        orderType !== "신규주문" &&
-                        orderType !== "배송조회"
-                    ) {
-                        try {
-                            const existingOrder = await findExistingOrder(
-                                orderNumber,
-                                ""
-                            );
-                            if (existingOrder) {
-                                // 기존 주문 정보를 자동으로 채워줌
-                                document.getElementById("customerName").value =
-                                    existingOrder.customerName;
-                                document.getElementById("phone").value =
-                                    existingOrder.phone;
-                                document.getElementById("product").value =
-                                    existingOrder.product;
-                                document.getElementById("quantity").value =
-                                    existingOrder.quantity;
-                                document.getElementById("address").value =
-                                    existingOrder.address || "";
-                                document.getElementById("detailAddress").value =
-                                    existingOrder.detailAddress || "";
-
-                                // 기존 주문의 배송메세지를 요청사항에 자동으로 채워줌
-                                if (existingOrder.memo) {
-                                    document.getElementById(
-                                        "memo"
-                                    ).value = `[기존주문] ${existingOrder.memo}`;
-                                }
-
-                                // 성공 메시지
-                                showMessage(
-                                    `✅ 기존 주문 정보를 불러왔습니다. (${existingOrder.customerName}님)`,
-                                    "success"
-                                );
-                            } else {
-                                showMessage(
-                                    "❌ 해당 주문번호를 찾을 수 없습니다.",
-                                    "error"
-                                );
+                            if (existingOrder.memo) {
+                                document.getElementById("memo").value = `[기존주문] ${existingOrder.memo}`;
                             }
-                        } catch (error) {
-                            console.error("기존 주문 검색 오류:", error);
+
+                            showMessage(
+                                `✅ 기존 주문 정보를 불러왔습니다. (${existingOrder.customerName}님)`,
+                                "success"
+                            );
+                        } else {
+                            showMessage(
+                                "❌ 해당 주문번호를 찾을 수 없습니다.",
+                                "error"
+                            );
                         }
+                    } catch (error) {
+                        console.error("기존 주문 검색 오류:", error);
                     }
-                });
+                }
+            }
+
+            const existingOrderInputEl = document.getElementById("existingOrderNumber");
+            existingOrderInputEl.addEventListener("blur", handleExistingOrderNumberEntered);
+            existingOrderInputEl.addEventListener("change", handleExistingOrderNumberEntered);
+            existingOrderInputEl.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleExistingOrderNumberEntered();
+                }
+            });
 
             // 주소 찾기 기능 (Daum 우편번호 API)
             document
