@@ -2008,7 +2008,8 @@
                         orderType
                     );
                     if (!statusCheck.canProcess) {
-                        showMessage(`❌ ${statusCheck.reason}`, "error");
+                        // 하단 메시지 대신 상단 토스트로 안내
+                        showInlineNotice(`❌ ${statusCheck.reason}`);
                         return;
                     }
                 }
@@ -2037,9 +2038,8 @@
                                 document.getElementById("memo").value = `[기존주문] ${existingOrder.memo}`;
                             }
 
-                            showMessage(
-                                `✅ 기존 주문 정보를 불러왔습니다. (${existingOrder.customerName}님)`,
-                                "success"
+                            showInlineNotice(
+                                `✅ 기존 주문 정보를 불러왔습니다. (${existingOrder.customerName}님)`
                             );
                         } else {
                             showMessage(
