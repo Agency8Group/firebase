@@ -1422,8 +1422,13 @@
                             return oNum === targetOrder && oPhone === targetPhone;
                         });
                     } else {
-                        // 주문번호만으로 검색 (정규화 일치)
+                        // 주문번호만으로 검색 - 정확한 일치와 정규화 일치 모두 시도
                         existingOrder = allOrders.find(([id, order]) => {
+                            // 1. 정확한 일치 먼저 시도
+                            if (order.orderNumber === orderNumber) {
+                                return true;
+                            }
+                            // 2. 정규화된 일치 시도
                             const oNum = normalizeOrderNumber(order.orderNumber);
                             return oNum === targetOrder;
                         });
@@ -2016,15 +2021,23 @@
                 // 배송조회 모드 처리: 상단 토스트로 배송 정보 표시
                 if (orderType === "배송조회") {
                     try {
+                        console.log("배송조회 시작 - 주문번호:", orderNumber);
                         const existingOrder = await findExistingOrder(orderNumber, "");
+                        console.log("검색된 주문:", existingOrder);
+                        
                         if (existingOrder) {
-                            const canShow =
-                                existingOrder.status === "배송중" ||
-                                existingOrder.status === "배송완료";
-                            if (canShow && (existingOrder.invoiceNumber || existingOrder.courier)) {
+                            console.log("주문 상태:", existingOrder.status);
+                            console.log("택배사:", existingOrder.courier);
+                            console.log("송장번호:", existingOrder.invoiceNumber);
+                            
+                            // 송장 정보가 있으면 상태와 관계없이 표시
+                            if (existingOrder.invoiceNumber || existingOrder.courier) {
+                                const statusText = existingOrder.status === "배송완료" ? "✅ 배송완료" : 
+                                                 existingOrder.status === "배송중" ? "🚚 배송중" : 
+                                                 "📦 송장등록됨";
                                 showInlineNotice(
-                                    `📦 택배사: ${existingOrder.courier || "-"} / 송장번호: ${existingOrder.invoiceNumber || "-"}`,
-                                    5000
+                                    `${statusText}\n택배사: ${existingOrder.courier || "-"}\n송장번호: ${existingOrder.invoiceNumber || "-"}`,
+                                    6000
                                 );
                             } else {
                                 showInlineNotice("🚚 아직 배송정보가 없거나 송장 미등록 상태입니다.", 4000);
@@ -2181,21 +2194,14 @@
                                     return;
                                 }
 
-                                const canShow =
-                                    existingOrder.status === "배송중" ||
-                                    existingOrder.status === "배송완료";
-                                if (
-                                    canShow &&
-                                    (existingOrder.invoiceNumber ||
-                                        existingOrder.courier)
-                                ) {
+                                // 송장 정보가 있으면 상태와 관계없이 표시
+                                if (existingOrder.invoiceNumber || existingOrder.courier) {
+                                    const statusText = existingOrder.status === "배송완료" ? "✅ 배송완료" : 
+                                                     existingOrder.status === "배송중" ? "🚚 배송중" : 
+                                                     "📦 송장등록됨";
                                     showMessage(
-                                        `📦 택배사: ${
-                                            existingOrder.courier || "-"
-                                        } / 송장번호: ${
-                                            existingOrder.invoiceNumber || "-"
-                                        }`,
-                                        "info"
+                                        `${statusText}\n택배사: ${existingOrder.courier || "-"}\n송장번호: ${existingOrder.invoiceNumber || "-"}`,
+                                        "success"
                                     );
                                 } else {
                                     showMessage(
