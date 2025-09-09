@@ -1,0 +1,12 @@
+(1)
+
+테스트 사이트 
+https://agency8group.github.io/seller1/
+
+테스트 어드민 사이트
+https://agency8group.github.io/seller1/admin.html
+
+어드민 계정정보 
+아이디 : admin@naver.com 
+비밀번호 : adminadmin1029
+
