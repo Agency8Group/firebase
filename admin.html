@@ -1639,56 +1639,21 @@
 
                         console.log("전체 데이터 구조:", Object.keys(data));
 
-                        // 모든 구조에서 주문 검색 (월별 폴더 + 기존 구조)
-                        for (const [key, value] of Object.entries(data)) {
-                            // 월별 폴더 구조인지 확인 (YYYY-MM 형식)
-                            if (
-                                key.match(/^\d{4}-\d{2}$/) &&
-                                value &&
-                                typeof value === "object"
-                            ) {
-                                console.log(
-                                    `${key} (월별 폴더)에서 검색 중...`,
-                                    Object.keys(value)
-                                );
-                                if (value[orderId]) {
-                                    const path = `orders/${key}/${orderId}`;
-                                    console.log(
-                                        "주문 경로 찾음 (월별 폴더):",
-                                        path
-                                    );
-                                    return path;
-                                }
-                            } else if (
-                                value &&
-                                typeof value === "object" &&
-                                value.orderNumber
-                            ) {
-                                // 기존 구조 (직접 주문 객체)
-                                if (key === orderId) {
-                                    const path = `orders/${orderId}`;
-                                    console.log(
-                                        "주문 경로 찾음 (기존 구조):",
-                                        path
-                                    );
-                                    return path;
-                                }
-                            } else if (value && typeof value === "object") {
-                                // 기타 폴더 구조
-                                console.log(
-                                    `${key} (기타 폴더)에서 검색 중...`,
-                                    Object.keys(value)
-                                );
-                                if (value[orderId]) {
-                                    const path = `orders/${key}/${orderId}`;
-                                    console.log(
-                                        "주문 경로 찾음 (기타 폴더):",
-                                        path
-                                    );
+                        // 월별 폴더 구조에서 검색 (2024-12, 2025-08, 2025-09 등)
+                        for (const [folderKey, folderValue] of Object.entries(data)) {
+                            console.log(`검색 중인 폴더: ${folderKey}`);
+                            
+                            if (folderValue && typeof folderValue === "object") {
+                                console.log(`폴더 ${folderKey}의 주문들:`, Object.keys(folderValue));
+                                
+                                if (folderValue[orderId]) {
+                                    const path = `orders/${folderKey}/${orderId}`;
+                                    console.log("주문 경로 찾음:", path);
                                     return path;
                                 }
                             }
                         }
+                        
                         console.log("주문을 찾을 수 없음:", orderId);
                         return null;
                     } catch (error) {
@@ -2220,6 +2185,8 @@
                     }
                     try {
                         status.textContent = "처리 중...";
+                        console.log("배송장 업로드 시작");
+                        
                         const file = input.files[0];
                         const data = await file.arrayBuffer();
                         const workbook = XLSX.read(data);
@@ -2228,6 +2195,9 @@
                             workbook.Sheets[sheetName],
                             { defval: "" }
                         );
+
+                        console.log("엑셀 파일에서 읽은 행 수:", rows.length);
+                        console.log("첫 번째 행 샘플:", rows[0]);
 
                         // rows: [{ 주문번호, 택배사, 송장번호 }]
                         let updated = 0,
@@ -2238,14 +2208,20 @@
                         const allSnap = await get(ref(database, "orders"));
                         const all = allSnap.val() || {};
 
+                        console.log("데이터베이스에서 가져온 orders 구조:", Object.keys(all));
+
                         // 모든 구조에서 주문 수집 (공통 함수 사용)
                         const allOrders = collectAllOrders(all);
+                        console.log("수집된 총 주문 수:", allOrders.length);
 
                         const orderNumberToId = new Map();
                         allOrders.forEach(([id, o]) => {
                             if (o && o.orderNumber)
                                 orderNumberToId.set(o.orderNumber, id);
                         });
+                        
+                        console.log("주문번호-ID 매핑 수:", orderNumberToId.size);
+                        console.log("매핑 샘플:", Array.from(orderNumberToId.entries()).slice(0, 5));
 
                         for (const row of rows) {
                             const orderNumber = String(
@@ -2255,23 +2231,37 @@
                             const invoice = String(
                                 row["송장번호"] || ""
                             ).trim();
+                            
+                            console.log(`처리 중인 행: 주문번호=${orderNumber}, 택배사=${courier}, 송장번호=${invoice}`);
+                            
                             if (!orderNumber || !courier || !invoice) {
+                                console.log(`데이터 누락으로 스킵: 주문번호=${orderNumber}, 택배사=${courier}, 송장번호=${invoice}`);
                                 errors++;
                                 continue;
                             }
 
                             const orderId = orderNumberToId.get(orderNumber);
+                            console.log(`주문번호 ${orderNumber}에 대한 ID: ${orderId}`);
+                            
                             if (!orderId) {
+                                console.log(`주문번호 ${orderNumber}에 해당하는 주문을 찾을 수 없음`);
                                 notFound++;
                                 continue;
                             }
 
                             try {
-                                const order = all[orderId];
-                                if (!order) {
+                                console.log(`주문 ID ${orderId}에 대한 데이터 조회 중...`);
+                                
+                                // collectAllOrders에서 찾은 주문 데이터 사용
+                                const foundOrder = allOrders.find(([id, order]) => id === orderId);
+                                if (!foundOrder) {
+                                    console.log(`주문 ID ${orderId}에 대한 데이터를 찾을 수 없음`);
                                     notFound++;
                                     continue;
                                 }
+                                
+                                const order = foundOrder[1];
+                                console.log(`조회된 주문 데이터:`, order);
 
                                 // 클레임 체크: 해당 주문에 대한 교환/반품/취소가 접수/배송중인지 확인 (월별 폴더 구조)
                                 const relatedClaims = allOrders
@@ -2289,8 +2279,12 @@
                                     .map(([id, o]) => o);
 
                                 // 송장 정보 업데이트 (월별 폴더 구조)
+                                console.log(`주문 ID ${orderId}의 경로를 찾는 중...`);
                                 const orderPath = await findOrderPath(orderId);
+                                console.log(`찾은 주문 경로: ${orderPath}`);
+                                
                                 if (orderPath) {
+                                    console.log(`송장 정보 업데이트 중: ${orderPath}`);
                                     await set(
                                         ref(database, `${orderPath}/courier`),
                                         courier
@@ -2302,6 +2296,9 @@
                                         ),
                                         invoice
                                     );
+                                    console.log(`송장 정보 업데이트 완료: ${orderPath}`);
+                                } else {
+                                    console.error(`주문 경로를 찾을 수 없음: ${orderId}`);
                                 }
 
                                 // 클레임이 없으면 배송중으로 자동 전환 (월별 폴더 구조)
@@ -2361,8 +2358,9 @@
                         // 송장 업로드 후 현재 필터 상태 유지
                         // 실시간 리스너가 자동으로 필터를 적용함
                     } catch (e) {
-                        console.error(e);
-                        alert("업로드 처리 중 오류가 발생했습니다.");
+                        console.error("배송장 업로드 오류:", e);
+                        status.textContent = "업로드 실패";
+                        alert(`업로드 처리 중 오류가 발생했습니다.\n\n오류 내용: ${e.message}\n\n자세한 내용은 브라우저 개발자 도구(F12)의 콘솔을 확인해주세요.`);
                     }
                 };
 
