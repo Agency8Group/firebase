@@ -1361,7 +1361,8 @@
                                         최근 3일
                                     </option>
                                     <option value="today">오늘</option>
-                                    <option value="week">이번 주</option>
+                                    <option value="week">최근 1주일</option>
+                                    <option value="recent1month">최근 한달</option>
                                 </select>
                                 <select
                                     id="itemsPerPageFilter"
@@ -2786,6 +2787,11 @@
                                     const weekAgo = new Date(now);
                                     weekAgo.setDate(weekAgo.getDate() - 7);
                                     return orderDate >= weekAgo;
+
+                                case "recent1month":
+                                    const oneMonthAgo = new Date(now);
+                                    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                                    return orderDate >= oneMonthAgo;
                             }
                         }
 
