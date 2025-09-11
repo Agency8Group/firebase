@@ -965,7 +965,7 @@
                                     d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
                                 />
                             </svg>
-                            신규주문 진행중
+                            신규주문 접수
                         </button>
                         <button
                             class="btn btn-exchange"
@@ -980,7 +980,7 @@
                                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
                                 />
                             </svg>
-                            교환접수 진행중
+                            교환접수
                         </button>
                         <button
                             class="btn btn-return"
@@ -995,7 +995,7 @@
                                     d="M19 7h-8v6h8V7zm-2 4h-4V9h4v2zm4-12H3C1.9 1 1 1.9 1 3v18c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H3V5h18v14z"
                                 />
                             </svg>
-                            반품접수 진행중
+                            반품접수
                         </button>
                         <button
                             class="btn btn-danger"
@@ -1010,7 +1010,7 @@
                                     d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
                                 />
                             </svg>
-                            취소요청 진행중
+                            취소요청
                         </button>
                         <button
                             class="btn btn-secondary"
@@ -1697,8 +1697,7 @@
                                 ([id, order]) => {
                                     return (
                                         order.orderType === "신규주문" &&
-                                        (order.status === "접수" ||
-                                            order.status === "배송중")
+                                        order.status === "접수"
                                     );
                                 }
                             );
@@ -1710,8 +1709,7 @@
                                         ["교환", "반품", "취소"].includes(
                                             order.orderType
                                         ) &&
-                                        (order.status === "접수" ||
-                                            order.status === "배송중")
+                                        order.status === "접수"
                                     );
                                 }
                             );
@@ -1753,7 +1751,7 @@
                         switch (currentFilterState.type) {
                             case "newOrders":
                                 statusText =
-                                    "신규주문 진행중 필터가 적용되어 있습니다.";
+                                    "신규주문 접수 필터가 적용되어 있습니다.";
                                 break;
                             case "exchange":
                                 statusText =
@@ -1765,11 +1763,11 @@
                                 break;
                             case "cancel":
                                 statusText =
-                                    "취소요청 진행중 필터가 적용되어 있습니다.";
+                                    "취소요청 필터가 적용되어 있습니다.";
                                 break;
                             case "exchangeReturn":
                                 statusText =
-                                    "교환/반품/취소 진행중 필터가 적용되어 있습니다.";
+                                    "교환/반품/취소 접수 필터가 적용되어 있습니다.";
                                 break;
                         }
                         filterStatusText.textContent = statusText;
@@ -2836,7 +2834,7 @@
                     alert("최근 3일 필터가 적용되었습니다.");
                 };
 
-                // 신규주문 진행중 필터링
+                // 신규주문 접수 필터링
                 window.filterNewOrdersInProgress = function () {
                     // 필터 초기화
                     document.getElementById("orderTypeFilter").value = "";
@@ -2850,7 +2848,7 @@
                         type: "newOrders",
                         filters: {
                             orderType: "신규주문",
-                            status: ["접수", "배송중"],
+                            status: ["접수"],
                         },
                         searchTerms: {},
                     };
@@ -2859,10 +2857,10 @@
                     filterNewOrdersInProgressCustom();
 
                     // 사용자에게 알림
-                    alert("신규주문 중 접수/배송중 상태인 주문만 표시됩니다.");
+                    alert("신규주문 중 접수 상태인 주문만 표시됩니다.");
                 };
 
-                // 교환접수 진행중 필터링
+                // 교환접수 필터링
                 window.filterExchangeInProgress = function () {
                     // 필터 초기화
                     document.getElementById("dateFilter").value = ""; // 전체 기간으로 설정
@@ -2885,10 +2883,10 @@
                     filterExchangeInProgressCustom();
 
                     // 사용자에게 알림
-                    alert("교환접수 중 접수/배송중 상태인 주문만 표시됩니다.");
+                    alert("교환접수 중 접수 상태인 주문만 표시됩니다.");
                 };
 
-                // 반품접수 진행중 필터링
+                // 반품접수 필터링
                 window.filterReturnInProgress = function () {
                     // 필터 초기화
                     document.getElementById("dateFilter").value = ""; // 전체 기간으로 설정
@@ -2911,10 +2909,10 @@
                     filterReturnInProgressCustom();
 
                     // 사용자에게 알림
-                    alert("반품접수 중 접수/배송중 상태인 주문만 표시됩니다.");
+                    alert("반품접수 중 접수 상태인 주문만 표시됩니다.");
                 };
 
-                // 취소요청 진행중 필터링
+                // 취소요청 필터링
                 window.filterCancelInProgress = function () {
                     // 필터 초기화
                     document.getElementById("dateFilter").value = ""; // 전체 기간으로 설정
@@ -2937,7 +2935,7 @@
                     filterCancelInProgressCustom();
 
                     // 사용자에게 알림
-                    alert("취소요청 중 접수/배송중 상태인 주문만 표시됩니다.");
+                    alert("취소요청 중 접수 상태인 주문만 표시됩니다.");
                 };
 
                 // 전체 보기 (모든 주문 표시)
@@ -3020,7 +3018,7 @@
                     }
                 }
 
-                // 신규주문 진행중 커스텀 필터링
+                // 신규주문 접수 커스텀 필터링
                 function filterNewOrdersInProgressCustom() {
                     const ordersRef = ref(database, "orders");
                     onValue(
@@ -3048,16 +3046,13 @@
                                         return false;
                                     }
 
-                                    // 상태 필터 (접수 또는 배송중만)
-                                    if (
-                                        order.status !== "접수" &&
-                                        order.status !== "배송중"
-                                    ) {
+                                    // 상태 필터 (접수만)
+                                    if (order.status !== "접수") {
                                         return false;
                                     }
 
                                     console.log(
-                                        "신규주문 진행중 통과:",
+                                        "신규주문 접수 통과:",
                                         order.orderType,
                                         order.status,
                                         order.orderNumber
@@ -3067,7 +3062,7 @@
                             );
 
                             console.log(
-                                "신규주문 진행중 필터링 결과:",
+                                "신규주문 접수 필터링 결과:",
                                 filteredEntries.length,
                                 "건"
                             );
@@ -3092,7 +3087,7 @@
                     );
                 }
 
-                // 교환접수 진행중 커스텀 필터링
+                // 교환접수 커스텀 필터링
                 function filterExchangeInProgressCustom() {
                     const ordersRef = ref(database, "orders");
                     onValue(
@@ -3120,16 +3115,13 @@
                                         return false;
                                     }
 
-                                    // 상태 필터 (접수 또는 배송중만)
-                                    if (
-                                        order.status !== "접수" &&
-                                        order.status !== "배송중"
-                                    ) {
+                                    // 상태 필터 (접수만)
+                                    if (order.status !== "접수") {
                                         return false;
                                     }
 
                                     console.log(
-                                        "교환접수 진행중 통과:",
+                                        "교환접수 통과:",
                                         order.orderType,
                                         order.status
                                     );
@@ -3138,7 +3130,7 @@
                             );
 
                             console.log(
-                                "교환접수 진행중 필터링 결과:",
+                                "교환접수 필터링 결과:",
                                 filteredEntries.length,
                                 "건"
                             );
@@ -3161,7 +3153,7 @@
                     );
                 }
 
-                // 반품접수 진행중 커스텀 필터링
+                // 반품접수 커스텀 필터링
                 function filterReturnInProgressCustom() {
                     const ordersRef = ref(database, "orders");
                     onValue(
@@ -3189,16 +3181,13 @@
                                         return false;
                                     }
 
-                                    // 상태 필터 (접수 또는 배송중만)
-                                    if (
-                                        order.status !== "접수" &&
-                                        order.status !== "배송중"
-                                    ) {
+                                    // 상태 필터 (접수만)
+                                    if (order.status !== "접수") {
                                         return false;
                                     }
 
                                     console.log(
-                                        "반품접수 진행중 통과:",
+                                        "반품접수 통과:",
                                         order.orderType,
                                         order.status
                                     );
@@ -3207,7 +3196,7 @@
                             );
 
                             console.log(
-                                "반품접수 진행중 필터링 결과:",
+                                "반품접수 필터링 결과:",
                                 filteredEntries.length,
                                 "건"
                             );
@@ -3230,7 +3219,7 @@
                     );
                 }
 
-                // 취소요청 진행중 커스텀 필터링
+                // 취소요청 커스텀 필터링
                 function filterCancelInProgressCustom() {
                     const ordersRef = ref(database, "orders");
                     onValue(
@@ -3258,16 +3247,13 @@
                                         return false;
                                     }
 
-                                    // 상태 필터 (접수 또는 배송중만)
-                                    if (
-                                        order.status !== "접수" &&
-                                        order.status !== "배송중"
-                                    ) {
+                                    // 상태 필터 (접수만)
+                                    if (order.status !== "접수") {
                                         return false;
                                     }
 
                                     console.log(
-                                        "취소요청 진행중 통과:",
+                                        "취소요청 통과:",
                                         order.orderType,
                                         order.status
                                     );
@@ -3276,7 +3262,7 @@
                             );
 
                             console.log(
-                                "취소요청 진행중 필터링 결과:",
+                                "취소요청 필터링 결과:",
                                 filteredEntries.length,
                                 "건"
                             );
@@ -3299,7 +3285,7 @@
                     );
                 }
 
-                // 교환/반품/취소 진행중 커스텀 필터링 (기존 함수 유지)
+                // 교환/반품/취소 접수 커스텀 필터링 (기존 함수 유지)
                 function filterExchangeReturnInProgressCustom() {
                     const ordersRef = ref(database, "orders");
                     onValue(
@@ -3331,16 +3317,13 @@
                                         return false;
                                     }
 
-                                    // 상태 필터 (접수 또는 배송중만)
-                                    if (
-                                        order.status !== "접수" &&
-                                        order.status !== "배송중"
-                                    ) {
+                                    // 상태 필터 (접수만)
+                                    if (order.status !== "접수") {
                                         return false;
                                     }
 
                                     console.log(
-                                        "교환/반품/취소 진행중 통과:",
+                                        "교환/반품/취소 접수 통과:",
                                         order.orderType,
                                         order.status,
                                         order.orderNumber
@@ -3350,7 +3333,7 @@
                             );
 
                             console.log(
-                                "교환/반품/취소 진행중 필터링 결과:",
+                                "교환/반품/취소 접수 필터링 결과:",
                                 filteredEntries.length,
                                 "건"
                             );
