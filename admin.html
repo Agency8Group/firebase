@@ -562,6 +562,16 @@
                 color: #721c24;
             }
 
+            .status-교환요청 {
+                background-color: #ffeaa7;
+                color: #d63031;
+            }
+
+            .status-반품요청 {
+                background-color: #fab1a0;
+                color: #e17055;
+            }
+
             .order-type-badge {
                 padding: 4px 8px;
                 border-radius: 12px;
@@ -778,6 +788,8 @@
         </style>
     </head>
     <body>
+
+
         <!-- 로그인 모달 -->
         <div id="loginModal" class="login-modal" style="display: none">
             <div class="login-container">
@@ -932,19 +944,19 @@
                         <span class="stats-number" id="todayNewOrders">0</span>
                     </div>
                     <div class="stats-item">
-                        <span class="stats-label">교환접수 진행중</span>
+                        <span class="stats-label">교환처리 진행중</span>
                         <span class="stats-number" id="todayExchangeRequests"
                             >0</span
                         >
                     </div>
                     <div class="stats-item">
-                        <span class="stats-label">반품접수 진행중</span>
+                        <span class="stats-label">반품처리 진행중</span>
                         <span class="stats-number" id="todayReturnRequests"
                             >0</span
                         >
                     </div>
                     <div class="stats-item">
-                        <span class="stats-label">취소 요청 진행중</span>
+                        <span class="stats-label">취소처리 진행중</span>
                         <span class="stats-number" id="todayCancelRequests"
                             >0</span
                         >
@@ -980,7 +992,7 @@
                                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
                                 />
                             </svg>
-                            교환접수
+                            교환처리
                         </button>
                         <button
                             class="btn btn-return"
@@ -995,7 +1007,7 @@
                                     d="M19 7h-8v6h8V7zm-2 4h-4V9h4v2zm4-12H3C1.9 1 1 1.9 1 3v18c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H3V5h18v14z"
                                 />
                             </svg>
-                            반품접수
+                            반품처리
                         </button>
                         <button
                             class="btn btn-danger"
@@ -1010,7 +1022,7 @@
                                     d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
                                 />
                             </svg>
-                            취소요청
+                            취소처리
                         </button>
                         <button
                             class="btn btn-secondary"
@@ -1336,9 +1348,6 @@
                                 >
                                     <option value="">전체 주문유형</option>
                                     <option value="신규주문">신규주문</option>
-                                    <option value="교환">교환</option>
-                                    <option value="반품">반품</option>
-                                    <option value="취소">취소</option>
                                 </select>
                                 <select
                                     id="statusFilter"
@@ -1349,6 +1358,8 @@
                                     <option value="접수">접수</option>
                                     <option value="배송중">배송중</option>
                                     <option value="배송완료">배송완료</option>
+                                    <option value="교환요청">교환요청</option>
+                                    <option value="반품요청">반품요청</option>
                                     <option value="취소">취소</option>
                                 </select>
                                 <select
@@ -1756,19 +1767,19 @@
                                 break;
                             case "exchange":
                                 statusText =
-                                    "교환접수 진행중 필터가 적용되어 있습니다.";
+                                    "교환처리 진행중 필터가 적용되어 있습니다.";
                                 break;
                             case "return":
                                 statusText =
-                                    "반품접수 진행중 필터가 적용되어 있습니다.";
+                                    "반품처리 진행중 필터가 적용되어 있습니다.";
                                 break;
                             case "cancel":
                                 statusText =
-                                    "취소요청 필터가 적용되어 있습니다.";
+                                    "취소처리 필터가 적용되어 있습니다.";
                                 break;
                             case "exchangeReturn":
                                 statusText =
-                                    "교환/반품/취소 접수 필터가 적용되어 있습니다.";
+                                    "교환/반품/취소 처리 필터가 적용되어 있습니다.";
                                 break;
                         }
                         filterStatusText.textContent = statusText;
@@ -1821,18 +1832,7 @@
                         }
 
                         // 2. 관련 클레임들 찾기 (교환/반품/취소)
-                        allOrders.forEach(([id, order]) => {
-                            if (
-                                order &&
-                                order.existingOrderNumber === orderNumber
-                            ) {
-                                relatedOrders.push({
-                                    id: id,
-                                    order: order,
-                                    type: "클레임",
-                                });
-                            }
-                        });
+                        // 1차 버전: 관련 클레임 검색 제거 (소비자 접수 불가)
 
                         // 주문 시간순으로 정렬
                         relatedOrders.sort(
@@ -1876,11 +1876,7 @@
                                      (o) => o.type === "원주문"
                                  ).length
                              }건</span>
-                             <span>클레임: ${
-                                 relatedOrders.filter(
-                                     (o) => o.type === "클레임"
-                                 ).length
-                             }건</span>
+                             <!-- 1차 버전: 클레임 통계 제거 -->
                          </div>
                      </div>
                      
@@ -1905,9 +1901,7 @@
                     relatedOrders.forEach(({ id, order, type }) => {
                         const orderDate = new Date(order.createdAt);
                         const typeBadge =
-                            type === "원주문"
-                                ? '<span style="background: #28a745; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px;">원주문</span>'
-                                : '<span style="background: #ffc107; color: #212529; padding: 4px 8px; border-radius: 12px; font-size: 11px;">클레임</span>';
+                            '<span style="background: #28a745; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px;">원주문</span>';
 
                         modalHTML += `
                          <tr style="border-bottom: 1px solid #f1f3f4;">
@@ -1956,6 +1950,16 @@
                                              ? "selected"
                                              : ""
                                      }>배송완료</option>
+                                     <option value="교환요청" ${
+                                         order.status === "교환요청"
+                                             ? "selected"
+                                             : ""
+                                     }>교환요청</option>
+                                     <option value="반품요청" ${
+                                         order.status === "반품요청"
+                                             ? "selected"
+                                             : ""
+                                     }>반품요청</option>
                                      <option value="취소" ${
                                          order.status === "취소"
                                              ? "selected"
@@ -1975,8 +1979,7 @@
                      <div style="margin-top: 20px; padding: 16px; background: #e3f2fd; border-radius: 8px; border: 1px solid #bbdefb;">
                          <div style="font-weight: 600; color: #1976d2; margin-bottom: 8px;">💡 작업 팁</div>
                          <div style="font-size: 13px; color: #1976d2; line-height: 1.5;">
-                             • 원주문과 관련 클레임들의 상태를 일괄적으로 관리할 수 있습니다.<br>
-                             • 클레임이 진행 중인 경우 원주문 상태 변경 시 주의가 필요합니다.<br>
+                             • 원주문의 상태를 일괄적으로 관리할 수 있습니다.<br>
                              • 모든 관련 주문의 상태를 확인하고 일관성 있게 관리하세요.
                          </div>
                      </div>
@@ -2201,9 +2204,7 @@
                         // rows: [{ 주문번호, 택배사, 송장번호 }]
                         let updated = 0,
                             notFound = 0,
-                            errors = 0,
-                            claimWarnings = 0;
-                        const claimWarningOrders = [];
+                            errors = 0;
                         const allSnap = await get(ref(database, "orders"));
                         const all = allSnap.val() || {};
 
@@ -2262,20 +2263,7 @@
                                 const order = foundOrder[1];
                                 console.log(`조회된 주문 데이터:`, order);
 
-                                // 클레임 체크: 해당 주문에 대한 교환/반품/취소가 접수/배송중인지 확인 (월별 폴더 구조)
-                                const relatedClaims = allOrders
-                                    .filter(
-                                        ([id, o]) =>
-                                            o &&
-                                            o.existingOrderNumber ===
-                                                order.orderNumber &&
-                                            (o.orderType === "교환" ||
-                                                o.orderType === "반품" ||
-                                                o.orderType === "취소") &&
-                                            (o.status === "접수" ||
-                                                o.status === "배송중")
-                                    )
-                                    .map(([id, o]) => o);
+                                // 1차 버전: 클레임 체크 제거 (소비자 접수 불가)
 
                                 // 송장 정보 업데이트 (월별 폴더 구조)
                                 console.log(`주문 ID ${orderId}의 경로를 찾는 중...`);
@@ -2300,8 +2288,8 @@
                                     console.error(`주문 경로를 찾을 수 없음: ${orderId}`);
                                 }
 
-                                // 클레임이 없으면 배송중으로 자동 전환 (월별 폴더 구조)
-                                if (relatedClaims.length === 0 && orderPath) {
+                                // 1차 버전: 클레임 체크 없이 바로 배송중으로 전환
+                                if (orderPath) {
                                     await set(
                                         ref(database, `${orderPath}/status`),
                                         "배송중"
@@ -2314,13 +2302,6 @@
                                         ),
                                         Date.now()
                                     );
-                                } else {
-                                    // 클레임이 있으면 경고 누적 (송장 정보는 저장되지만 상태는 그대로)
-                                    claimWarnings++;
-                                    claimWarningOrders.push(order.orderNumber);
-                                    console.warn(
-                                        `클레임 진행 중: ${order.orderNumber} (${relatedClaims.length}건)`
-                                    );
                                 }
 
                                 updated++;
@@ -2331,20 +2312,8 @@
 
                         let message = `완료: ${updated}건 업데이트, ${notFound}건 미매칭, ${errors}건 오류`;
 
-                        // 클레임 경고가 있으면 알럿에 포함
-                        if (claimWarnings > 0) {
-                            message += `\n\n⚠️ 클레임 진행 중인 주문 ${claimWarnings}건은 송장만 등록되고 배송중 처리되지 않았습니다.`;
-                            const sample = claimWarningOrders
-                                .slice(0, 5)
-                                .join(", ");
-                            if (sample)
-                                message += `\n예: ${sample}${
-                                    claimWarningOrders.length > 5 ? " 외" : ""
-                                }`;
-                            message += `\n해당 주문의 교환/반품/취소 요청을 먼저 처리해주세요.`;
-                        } else {
-                            message += `\n\n✅ 정상 주문 ${updated}건은 송장 등록 후 3영업일 후 자동 배송완료 처리됩니다.`;
-                        }
+                        // 1차 버전: 클레임 관련 경고 제거 (소비자 접수 불가)
+                        message += `\n\n✅ 정상 주문 ${updated}건은 송장 등록 후 3영업일 후 자동 배송완료 처리됩니다.`;
 
                         status.textContent = message.split("\n")[0]; // 첫 줄만 status에 표시
                         alert(message);
@@ -2553,6 +2522,12 @@
                         <option value="배송완료" ${
                             order.status === "배송완료" ? "selected" : ""
                         }>배송완료</option>
+                        <option value="교환요청" ${
+                            order.status === "교환요청" ? "selected" : ""
+                        }>교환요청</option>
+                        <option value="반품요청" ${
+                            order.status === "반품요청" ? "selected" : ""
+                        }>반품요청</option>
                         <option value="취소" ${
                             order.status === "취소" ? "selected" : ""
                         }>취소</option>
@@ -2587,40 +2562,7 @@
                         const order = orderSnap.val();
                         if (!order) return;
 
-                        // 배송중/배송완료로 변경하는 경우, 연계 클레임(교환/반품/취소) 진행 여부 확인
-                        if (
-                            newStatus === "배송중" ||
-                            newStatus === "배송완료"
-                        ) {
-                            // 월별 폴더 구조에서 관련 클레임 검색
-                            const allSnap = await get(ref(database, `orders`));
-                            const all = allSnap.val() || {};
-
-                            const allOrders = collectAllOrders(all);
-
-                            const relatedClaims = allOrders
-                                .filter(
-                                    ([id, o]) =>
-                                        o &&
-                                        o.existingOrderNumber ===
-                                            order.orderNumber &&
-                                        (o.orderType === "교환" ||
-                                            o.orderType === "반품" ||
-                                            o.orderType === "취소") &&
-                                        (o.status === "접수" ||
-                                            o.status === "배송중")
-                                )
-                                .map(([id, o]) => o);
-
-                            if (relatedClaims.length > 0) {
-                                const proceed = confirm(
-                                    "새로운 클레임이 존재합니다.\n" +
-                                        "해당 주문에 대해 교환/반품/취소 요청이 접수/진행 중일 수 있어요.\n" +
-                                        `그래도 '${newStatus}'로 상태를 변경할까요?`
-                                );
-                                if (!proceed) return;
-                            }
-                        }
+                        // 1차 버전: 클레임 체크 제거 (소비자 접수 불가)
 
                         // 상태 업데이트 실행 (월별 폴더 구조)
                         if (orderPath) {
@@ -2675,25 +2617,15 @@
                         ([id, order]) => order.orderType === "신규주문"
                     );
 
-                    // 전체 데이터에서 교환/반품/취소 진행중인 주문 카운트 (접수/배송중 상태)
-                    // 이 부분은 항상 전체 데이터를 기준으로 계산하여 미처리 체크 개념 유지
+                    // 1차 버전: 상태 기반 통계 (교환요청, 반품요청, 취소 상태)
                     const exchangeRequests = entries.filter(
-                        ([id, order]) =>
-                            order.orderType === "교환" &&
-                            (order.status === "접수" ||
-                                order.status === "배송중")
+                        ([id, order]) => order.status === "교환요청"
                     );
                     const returnRequests = entries.filter(
-                        ([id, order]) =>
-                            order.orderType === "반품" &&
-                            (order.status === "접수" ||
-                                order.status === "배송중")
+                        ([id, order]) => order.status === "반품요청"
                     );
                     const cancelRequests = entries.filter(
-                        ([id, order]) =>
-                            order.orderType === "취소" &&
-                            (order.status === "접수" ||
-                                order.status === "배송중")
+                        ([id, order]) => order.status === "취소"
                     );
 
                     document.getElementById("todayNewOrders").textContent =
@@ -2752,11 +2684,8 @@
                             return false;
                         }
 
-                        // 주문유형 필터
-                        if (
-                            orderTypeFilter &&
-                            order.orderType !== orderTypeFilter
-                        ) {
+                        // 주문유형 필터 (1차 버전: 신규주문만 존재)
+                        if (orderTypeFilter && orderTypeFilter !== "신규주문") {
                             return false;
                         }
 
@@ -2853,7 +2782,6 @@
                     currentFilterState = {
                         type: "newOrders",
                         filters: {
-                            orderType: "신규주문",
                             status: ["접수"],
                         },
                         searchTerms: {},
@@ -2866,7 +2794,7 @@
                     alert("신규주문 중 접수 상태인 주문만 표시됩니다.");
                 };
 
-                // 교환접수 필터링
+                // 교환처리 필터링
                 window.filterExchangeInProgress = function () {
                     // 필터 초기화
                     document.getElementById("dateFilter").value = ""; // 전체 기간으로 설정
@@ -2879,7 +2807,7 @@
                     currentFilterState = {
                         type: "exchange",
                         filters: {
-                            orderType: ["교환"],
+                            // 1차 버전: 상태 기반 필터링으로 변경
                             status: ["접수", "배송중"],
                         },
                         searchTerms: {},
@@ -2889,10 +2817,10 @@
                     filterExchangeInProgressCustom();
 
                     // 사용자에게 알림
-                    alert("교환접수 중 접수 상태인 주문만 표시됩니다.");
+                    alert("교환요청 상태인 주문만 표시됩니다.");
                 };
 
-                // 반품접수 필터링
+                // 반품처리 필터링
                 window.filterReturnInProgress = function () {
                     // 필터 초기화
                     document.getElementById("dateFilter").value = ""; // 전체 기간으로 설정
@@ -2905,7 +2833,7 @@
                     currentFilterState = {
                         type: "return",
                         filters: {
-                            orderType: ["반품"],
+                            // 1차 버전: 상태 기반 필터링으로 변경
                             status: ["접수", "배송중"],
                         },
                         searchTerms: {},
@@ -2915,10 +2843,10 @@
                     filterReturnInProgressCustom();
 
                     // 사용자에게 알림
-                    alert("반품접수 중 접수 상태인 주문만 표시됩니다.");
+                    alert("반품요청 상태인 주문만 표시됩니다.");
                 };
 
-                // 취소요청 필터링
+                // 취소처리 필터링
                 window.filterCancelInProgress = function () {
                     // 필터 초기화
                     document.getElementById("dateFilter").value = ""; // 전체 기간으로 설정
@@ -2931,7 +2859,7 @@
                     currentFilterState = {
                         type: "cancel",
                         filters: {
-                            orderType: ["취소"],
+                            // 1차 버전: 상태 기반 필터링으로 변경
                             status: ["접수", "배송중"],
                         },
                         searchTerms: {},
@@ -2941,7 +2869,7 @@
                     filterCancelInProgressCustom();
 
                     // 사용자에게 알림
-                    alert("취소요청 중 접수 상태인 주문만 표시됩니다.");
+                    alert("취소 상태인 주문만 표시됩니다.");
                 };
 
                 // 전체 보기 (모든 주문 표시)
@@ -3093,7 +3021,7 @@
                     );
                 }
 
-                // 교환접수 커스텀 필터링
+                // 교환처리 커스텀 필터링
                 function filterExchangeInProgressCustom() {
                     const ordersRef = ref(database, "orders");
                     onValue(
@@ -3116,18 +3044,13 @@
 
                             const filteredEntries = entries.filter(
                                 ([id, order]) => {
-                                    // 주문유형 필터 (교환만)
-                                    if (order.orderType !== "교환") {
-                                        return false;
-                                    }
-
-                                    // 상태 필터 (접수만)
-                                    if (order.status !== "접수") {
+                                    // 1차 버전: 상태 기반 필터링 (교환요청 상태)
+                                    if (order.status !== "교환요청") {
                                         return false;
                                     }
 
                                     console.log(
-                                        "교환접수 통과:",
+                                        "교환처리 통과:",
                                         order.orderType,
                                         order.status
                                     );
@@ -3136,7 +3059,7 @@
                             );
 
                             console.log(
-                                "교환접수 필터링 결과:",
+                                "교환처리 필터링 결과:",
                                 filteredEntries.length,
                                 "건"
                             );
@@ -3159,7 +3082,7 @@
                     );
                 }
 
-                // 반품접수 커스텀 필터링
+                // 반품처리 커스텀 필터링
                 function filterReturnInProgressCustom() {
                     const ordersRef = ref(database, "orders");
                     onValue(
@@ -3182,18 +3105,13 @@
 
                             const filteredEntries = entries.filter(
                                 ([id, order]) => {
-                                    // 주문유형 필터 (반품만)
-                                    if (order.orderType !== "반품") {
-                                        return false;
-                                    }
-
-                                    // 상태 필터 (접수만)
-                                    if (order.status !== "접수") {
+                                    // 1차 버전: 상태 기반 필터링 (반품요청 상태)
+                                    if (order.status !== "반품요청") {
                                         return false;
                                     }
 
                                     console.log(
-                                        "반품접수 통과:",
+                                        "반품처리 통과:",
                                         order.orderType,
                                         order.status
                                     );
@@ -3202,7 +3120,7 @@
                             );
 
                             console.log(
-                                "반품접수 필터링 결과:",
+                                "반품처리 필터링 결과:",
                                 filteredEntries.length,
                                 "건"
                             );
@@ -3225,7 +3143,7 @@
                     );
                 }
 
-                // 취소요청 커스텀 필터링
+                // 취소처리 커스텀 필터링
                 function filterCancelInProgressCustom() {
                     const ordersRef = ref(database, "orders");
                     onValue(
@@ -3248,18 +3166,13 @@
 
                             const filteredEntries = entries.filter(
                                 ([id, order]) => {
-                                    // 주문유형 필터 (취소만)
-                                    if (order.orderType !== "취소") {
-                                        return false;
-                                    }
-
-                                    // 상태 필터 (접수만)
-                                    if (order.status !== "접수") {
+                                    // 1차 버전: 상태 기반 필터링 (취소 상태)
+                                    if (order.status !== "취소") {
                                         return false;
                                     }
 
                                     console.log(
-                                        "취소요청 통과:",
+                                        "취소처리 통과:",
                                         order.orderType,
                                         order.status
                                     );
@@ -3268,7 +3181,7 @@
                             );
 
                             console.log(
-                                "취소요청 필터링 결과:",
+                                "취소처리 필터링 결과:",
                                 filteredEntries.length,
                                 "건"
                             );
@@ -3291,7 +3204,7 @@
                     );
                 }
 
-                // 교환/반품/취소 접수 커스텀 필터링 (기존 함수 유지)
+                // 교환/반품/취소 처리 커스텀 필터링 (기존 함수 유지)
                 function filterExchangeReturnInProgressCustom() {
                     const ordersRef = ref(database, "orders");
                     onValue(
@@ -3316,9 +3229,9 @@
                                 ([id, order]) => {
                                     // 주문유형 필터 (교환, 반품, 취소만)
                                     if (
-                                        order.orderType !== "교환" &&
-                                        order.orderType !== "반품" &&
-                                        order.orderType !== "취소"
+                                        order.status !== "교환요청" &&
+                                        order.status !== "반품요청" &&
+                                        order.status !== "취소"
                                     ) {
                                         return false;
                                     }
@@ -3329,7 +3242,7 @@
                                     }
 
                                     console.log(
-                                        "교환/반품/취소 접수 통과:",
+                                        "교환/반품/취소 처리 통과:",
                                         order.orderType,
                                         order.status,
                                         order.orderNumber
@@ -3339,7 +3252,7 @@
                             );
 
                             console.log(
-                                "교환/반품/취소 접수 필터링 결과:",
+                                "교환/반품/취소 처리 필터링 결과:",
                                 filteredEntries.length,
                                 "건"
                             );
@@ -3531,55 +3444,14 @@
                         }
                     }
 
-                    // 클레임 감지 (배송중/배송완료 처리 시만 의미 있음)
-                    let claimAffected = [];
-                    if (newStatus === "배송중" || newStatus === "배송완료") {
-                        claimAffected = selectedOrders.filter(({ order }) => {
-                            return allOrders.some(
-                                ([id, o]) =>
-                                    o &&
-                                    o.existingOrderNumber ===
-                                        order.orderNumber &&
-                                    (o.orderType === "교환" ||
-                                        o.orderType === "반품" ||
-                                        o.orderType === "취소") &&
-                                    (o.status === "접수" ||
-                                        o.status === "배송중")
-                            );
-                        });
-                    }
-
-                    if (claimAffected.length > 0) {
-                        const sample = claimAffected
-                            .slice(0, 5)
-                            .map((v) => v.order.orderNumber)
-                            .join(", ");
-                        const proceed = confirm(
-                            "새로운 클레임이 존재합니다.\n" +
-                                "선택된 주문 중 일부는 교환/반품/취소 요청이 접수/진행 중이에요.\n" +
-                                `해당 주문은 스킵하고 나머지만 '${newStatus}'로 변경할까요?` +
-                                (sample
-                                    ? `\n예: ${sample}${
-                                          claimAffected.length > 5 ? " 외" : ""
-                                      }`
-                                    : "")
-                        );
-                        if (!proceed) return;
-                    }
+                    // 1차 버전: 클레임 감지 제거 (소비자 접수 불가)
 
                     let successCount = 0;
                     let skippedCount = 0;
                     let errorCount = 0;
 
                     for (const { orderId, order } of selectedOrders) {
-                        // 클레임 영향 주문은 스킵
-                        const isClaimed = claimAffected.some(
-                            (v) => v.orderId === orderId
-                        );
-                        if (isClaimed) {
-                            skippedCount++;
-                            continue;
-                        }
+                        // 1차 버전: 클레임 스킵 로직 제거
                         try {
                             const orderPath = await findOrderPath(orderId);
                             if (orderPath) {
@@ -3606,8 +3478,6 @@
 
                     // 결과 알림
                     let message = `${successCount}개 상태 변경 완료`;
-                    if (skippedCount > 0)
-                        message += `\n${skippedCount}개는 클레임 진행 중으로 스킵됨`;
                     if (errorCount > 0) message += `\n${errorCount}개 실패`;
                     alert(message);
 
@@ -3826,6 +3696,29 @@
                         exportBtn.innerHTML = originalText;
                     }
                 };
+
+                // 1차 버전: 구글시트 백업 기능 제거
+
+                // 구글 스프레드시트 백업 시작
+                // 1차 버전: 구글시트 백업 기능 제거
+
+                // 백업 상태 표시
+                // 1차 버전: 구글시트 백업 기능 제거
+
+                // 1차 버전: 구글시트 백업 기능 제거
+
+                // 자동 백업 설정
+                // 1차 버전: 자동 백업 기능 제거
+
+                // 1차 버전: 실시간 배송조회 기능 제거 (API키 없어서 불가능)
+
+                // 실시간 배송조회 설정 저장
+                // 1차 버전: 실시간 배송조회 기능 제거
+
+                // 저장된 설정 로드
+                // 1차 버전: 실시간 배송조회 기능 제거
+
+                // 1차 버전: 실시간 배송조회 기능 제거
             </script>
         </div>
         <!-- mainContent 닫기 -->

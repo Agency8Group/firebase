@@ -232,6 +232,10 @@
                 font-size: 14px;
                 padding: 10px;
                 border-radius: 4px;
+                white-space: pre-line; /* 줄바꿈 지원 */
+                word-wrap: break-word; /* 긴 단어 줄바꿈 */
+                max-width: 100%;
+                overflow-wrap: break-word;
             }
 
             .msg.error {
@@ -244,6 +248,24 @@
                 color: #155724;
                 background-color: #d4edda;
                 border: 1px solid #c3e6cb;
+            }
+
+            .msg.info {
+                color: #0c5460;
+                background-color: #d1ecf1;
+                border: 1px solid #bee5eb;
+            }
+
+            /* 모바일 최적화 */
+            @media (max-width: 768px) {
+                .msg {
+                    margin-top: 16px;
+                    padding: 16px;
+                    font-size: 15px;
+                    line-height: 1.6;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
             }
 
             .addr-row {
@@ -967,35 +989,6 @@
                                 <span class="radio-label">배송조회</span>
                             </label>
                         </div>
-                        <div class="radio-row">
-                            <label class="radio-item">
-                                <input
-                                    type="radio"
-                                    name="orderType"
-                                    value="교환"
-                                />
-                                <span class="radio-custom"></span>
-                                <span class="radio-label">교환</span>
-                            </label>
-                            <label class="radio-item">
-                                <input
-                                    type="radio"
-                                    name="orderType"
-                                    value="반품"
-                                />
-                                <span class="radio-custom"></span>
-                                <span class="radio-label">반품</span>
-                            </label>
-                            <label class="radio-item">
-                                <input
-                                    type="radio"
-                                    name="orderType"
-                                    value="취소"
-                                />
-                                <span class="radio-custom"></span>
-                                <span class="radio-label">취소</span>
-                            </label>
-                        </div>
                     </div>
                     <div
                         id="processingLimits"
@@ -1007,9 +1000,9 @@
                             display: none;
                         "
                     >
-                        <strong>처리 제한:</strong><br />
-                        • 취소: 접수 상태에서만 가능<br />
-                        • 교환/반품: 배송완료 상태에서만 가능
+                        <strong>안내:</strong><br />
+                        • 신규주문: 새로운 주문을 접수합니다<br />
+                        • 배송조회: 입금자명과 전화번호로 배송 상태를 확인합니다
                     </div>
                 </div>
 
@@ -1018,16 +1011,29 @@
                     id="existingOrderField"
                     style="display: none"
                 >
-                    <label for="existingOrderNumber">기존 주문번호 *</label>
+                    <label for="searchCustomerName">배송조회 *</label>
+                    <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
+                        입금자명과 전화번호로 조회하세요:
+                    </div>
                     <div style="display: flex; gap: 8px; align-items: center;">
                         <input
                             type="text"
-                            id="existingOrderNumber"
-                            name="existingOrderNumber"
-                            placeholder="교환/반품/취소할 주문번호를 입력해주세요"
+                            id="searchCustomerName"
+                            name="searchCustomerName"
+                            placeholder="입금자명"
                             style="flex: 1;"
                         />
-                        <button type="button" id="btnLoadExistingOrder" class="icon-btn" style="white-space: nowrap; min-width: 88px;">불러오기</button>
+                        <input
+                            type="tel"
+                            id="searchPhone"
+                            name="searchPhone"
+                            placeholder="전화번호"
+                            style="flex: 1;"
+                        />
+                        <button type="button" id="btnSearchByNamePhone" class="icon-btn" style="white-space: nowrap; min-width: 88px;">조회</button>
+                    </div>
+                    <div style="font-size: 11px; color: #888; margin-top: 4px;">
+                        • 동일한 입금자명과 전화번호로 여러 주문이 있을 경우 모두 표시됩니다.
                     </div>
                 </div>
 
@@ -1130,20 +1136,7 @@
                     />
                 </div>
 
-                <!-- 환불 계좌정보 입력칸 (반품/취소 시에만 표시) -->
-                <div
-                    class="field"
-                    id="refundAccountField"
-                    style="display: none"
-                >
-                    <label for="refundAccount">환불받을 계좌정보 *</label>
-                    <input
-                        type="text"
-                        id="refundAccount"
-                        name="refundAccount"
-                        placeholder="은행명 - 계좌번호 - 예금주명 (예: 신한은행 - 110-123456789 - 홍길동)"
-                    />
-                </div>
+                <!-- 환불 계좌정보 필드는 1차 버전에서 제외됨 -->
 
                 <button type="submit" id="btnSubmit">
                     <svg
@@ -1285,46 +1278,42 @@
                 try {
                     const formData = new FormData(orderForm);
                     const orderType = formData.get("orderType");
-                    const existingOrderNumber = formData.get(
-                        "existingOrderNumber"
-                    );
+                    // 주문번호 입력 필드는 제거됨
                     const phone = formData.get("phone");
 
-                    // 교환/반품/취소인 경우 기존 주문 매칭 검증 및 상태 확인
-                    if (orderType !== "신규주문") {
-                        const existingOrder = await findExistingOrder(
-                            existingOrderNumber,
-                            phone
-                        );
-                        if (!existingOrder) {
+                    // 배송조회인 경우 입금자명+전화번호로 조회
+                    if (orderType === "배송조회") {
+                        const customerName = formData.get("searchCustomerName");
+                        const phone = formData.get("searchPhone");
+                        
+                        if (!customerName || !phone) {
                             showMessage(
-                                "❌ 기존 주문을 찾을 수 없습니다. 주문번호와 휴대폰번호를 확인해주세요.",
+                                "❌ 입금자명과 전화번호를 모두 입력해주세요.",
                                 "error"
                             );
                             return;
                         }
 
-                        // 주문 상태에 따른 처리 가능 여부 확인
-                        const statusCheck = await checkOrderStatusForClaim(
-                            existingOrderNumber,
-                            orderType
-                        );
-                        if (!statusCheck.canProcess) {
-                            showMessage(`❌ ${statusCheck.reason}`, "error");
-                            return;
+                        try {
+                            const matchingOrders = await searchOrderByNameAndPhone(customerName, phone);
+                            
+                            if (matchingOrders && matchingOrders.length > 0) {
+                                if (matchingOrders.length === 1) {
+                                    // 단일 주문인 경우 바로 표시
+                                    const [id, order] = matchingOrders[0];
+                                    displayOrderInfo(order);
+                                } else {
+                                    // 여러 주문인 경우 목록 표시
+                                    showMultipleOrdersModal(matchingOrders);
+                                }
+                            } else {
+                                showMessage("❌ 해당 정보로 주문을 찾을 수 없습니다.", "error");
+                            }
+                        } catch (error) {
+                            console.error("조회 오류:", error);
+                            showMessage("❌ 조회 중 오류가 발생했습니다.", "error");
                         }
-
-                        // 반품/취소 시 환불 계좌정보 필수 입력 확인
-                        if (
-                            (orderType === "반품" || orderType === "취소") &&
-                            !formData.get("refundAccount")
-                        ) {
-                            showMessage(
-                                "❌ 환불받을 계좌정보를 입력해주세요.",
-                                "error"
-                            );
-                            return;
-                        }
+                        return; // 배송조회는 여기서 종료
                     }
 
                     // 주문 내역 생성
@@ -1334,12 +1323,12 @@
                         product: formData.get("product"),
                         quantity: parseInt(formData.get("quantity")),
                         orderType: orderType,
-                        existingOrderNumber: existingOrderNumber || null,
+                        // 주문번호 입력 필드는 제거됨
                         zipcode: formData.get("zipcode"),
                         address: formData.get("address"),
                         detailAddress: formData.get("detailAddress"),
                         memo: formData.get("memo"),
-                        refundAccount: formData.get("refundAccount") || null,
+                        refundAccount: null, // 1차 버전에서는 사용하지 않음
                         status: getStatusByOrderType(orderType),
                         createdAt: Date.now(),
                         orderNumber: generateOrderNumber(),
@@ -1508,16 +1497,7 @@
                     `
                             : ""
                     }
-                    ${
-                        orderData.refundAccount
-                            ? `
-                    <div class="order-summary-item">
-                        <span>환불 계좌정보:</span>
-                        <span>${orderData.refundAccount}</span>
-                    </div>
-                    `
-                            : ""
-                    }
+                    <!-- 환불 계좌정보는 1차 버전에서 제외됨 -->
                     <div class="order-summary-item">
                         <span>입금계좌:</span>
                         <span>0000-0000-0000-0000 (0000셀러)</span>
@@ -1583,9 +1563,7 @@
                 if (orderData.memo) {
                     items.push(`메모: ${orderData.memo}`);
                 }
-                if (orderData.refundAccount) {
-                    items.push(`환불 계좌정보: ${orderData.refundAccount}`);
-                }
+                // 환불 계좌정보는 1차 버전에서 제외됨
 
                 items.forEach((item) => {
                     ctx.fillText(item, 20, y);
@@ -1597,14 +1575,73 @@
 
             // 메시지 표시
             function showMessage(text, type) {
-                messageDiv.textContent = text;
+                // 기존 타이머 모두 취소
+                if (window.messageTimeout) {
+                    clearTimeout(window.messageTimeout);
+                    window.messageTimeout = null;
+                }
+                
+                // 주문 정보의 경우 닫기 버튼이 있는 HTML로 표시
+                if (type === "success" && text.includes("📋 주문 정보")) {
+                    messageDiv.innerHTML = `
+                        <div style="position: relative;">
+                            <div style="white-space: pre-line; padding-right: 40px;">${text}</div>
+                            <button onclick="closeMessage()" style="
+                                position: absolute;
+                                top: 8px;
+                                right: 8px;
+                                background: rgba(0,0,0,0.1);
+                                border: none;
+                                font-size: 16px;
+                                color: #666;
+                                cursor: pointer;
+                                border-radius: 6px;
+                                width: 32px;
+                                height: 32px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                transition: all 0.2s;
+                                min-width: 32px;
+                                min-height: 32px;
+                                z-index: 10;
+                            " 
+                            onmouseover="this.style.background='rgba(0,0,0,0.2)'"
+                            onmouseout="this.style.background='rgba(0,0,0,0.1)'"
+                            title="닫기">✕</button>
+                        </div>
+                    `;
+                } else {
+                    messageDiv.textContent = text;
+                }
+                
                 messageDiv.className = `msg ${type}`;
                 messageDiv.style.display = "block";
 
-                setTimeout(() => {
-                    messageDiv.style.display = "none";
-                }, 5000);
+                // 주문 정보의 경우 자동 닫힘 없음 (X 버튼으로만 닫기), 일반 메시지는 8초
+                const isOrderInfo = type === "success" && (text.includes("📋 주문 정보") || text.includes("주문번호:"));
+                console.log("메시지 타입:", type, "주문 정보 여부:", isOrderInfo, "텍스트:", text.substring(0, 50));
+                
+                if (!isOrderInfo) {
+                    console.log("일반 메시지 - 8초 후 자동 닫힘");
+                    window.messageTimeout = setTimeout(() => {
+                        messageDiv.style.display = "none";
+                        window.messageTimeout = null;
+                    }, 8000);
+                } else {
+                    console.log("주문 정보 메시지 - 자동 닫힘 없음");
+                }
             }
+
+            // 메시지 닫기 함수 (전역)
+            window.closeMessage = function() {
+                // 타이머 취소
+                if (window.messageTimeout) {
+                    clearTimeout(window.messageTimeout);
+                    window.messageTimeout = null;
+                }
+                messageDiv.style.display = "none";
+            };
 
             // 연락처 자동 포맷팅
             const phoneInput = document.getElementById("phone");
@@ -1625,98 +1662,43 @@
                 }
             });
 
+            // 배송조회용 전화번호 자동 포맷팅
+            const searchPhoneInput = document.getElementById("searchPhone");
+            if (searchPhoneInput) {
+                searchPhoneInput.addEventListener("input", function (e) {
+                    let value = e.target.value.replace(/[^0-9]/g, ""); // 숫자만 추출
+
+                    if (value.length <= 3) {
+                        e.target.value = value;
+                    } else if (value.length <= 7) {
+                        e.target.value = value.slice(0, 3) + "-" + value.slice(3);
+                    } else {
+                        e.target.value =
+                            value.slice(0, 3) +
+                            "-" +
+                            value.slice(3, 7) +
+                            "-" +
+                            value.slice(7, 11);
+                    }
+                });
+            }
+
             // 주문 유형 변경 시 필드 표시/숨김 (성능 최적화)
             const orderTypeRadios = document.querySelectorAll(
                 'input[name="orderType"]'
             );
             const existingOrderField =
                 document.getElementById("existingOrderField");
-            const existingOrderInput = document.getElementById(
-                "existingOrderNumber"
-            );
+            // 주문번호 입력 필드는 제거됨 - 입금자명+전화번호로만 조회
 
-            // 주문 상태에 따른 교환/반품/취소 처리 제한 함수
-            async function checkOrderStatusForClaim(orderNumber, claimType) {
-                try {
-                    // 읽기 전에 익명 인증 보장 시도
-                    try {
-                        if (!auth.currentUser) {
-                            await signInAnonymously(auth);
-                        }
-                    } catch (_) {}
+            // ========================================
+            // 1차 버전 기능 제한
+            // ========================================
+            // - 교환/반품/취소 기능 제외
+            // - 신규주문, 배송조회만 지원
+            // - checkOrderStatusForClaim 함수 제거됨
 
-                    const ordersRef = ref(database, "orders");
-                    const snapshot = await get(ordersRef);
-                    const data = snapshot.val();
-
-                    if (!data)
-                        return {
-                            canProcess: false,
-                            reason: "주문 데이터를 찾을 수 없습니다.",
-                        };
-
-                    // 월별 폴더 구조에서 모든 주문 검색
-                    let allOrders = [];
-                    for (const [yearMonth, monthOrders] of Object.entries(
-                        data
-                    )) {
-                        if (monthOrders && typeof monthOrders === "object") {
-                            const monthOrderEntries =
-                                Object.entries(monthOrders);
-                            allOrders = allOrders.concat(monthOrderEntries);
-                        }
-                    }
-
-                    // 해당 주문번호로 원본 주문 찾기
-                    const originalOrder = allOrders.find(
-                        ([id, order]) => order.orderNumber === orderNumber
-                    );
-
-                    if (!originalOrder) {
-                        return {
-                            canProcess: false,
-                            reason: "해당 주문번호를 찾을 수 없습니다.",
-                        };
-                    }
-
-                    const status = originalOrder[1].status;
-
-                    // 취소는 접수 상태에서만 가능
-                    if (claimType === "취소") {
-                        if (status !== "접수") {
-                            return {
-                                canProcess: false,
-                                reason: `취소는 접수 상태에서만 가능합니다. (현재 상태: ${status})`,
-                            };
-                        }
-                    }
-
-                    // 교환/반품은 배송완료 상태에서만 가능
-                    if (claimType === "교환" || claimType === "반품") {
-                        if (status !== "배송완료") {
-                            return {
-                                canProcess: false,
-                                reason: `교환/반품은 배송완료 상태에서만 가능합니다. (현재 상태: ${status})`,
-                            };
-                        }
-                    }
-
-                    return { canProcess: true };
-                } catch (error) {
-                    console.error("주문 상태 확인 오류:", error);
-                    // 권한 문제 등 실기기 특이 케이스 메시지 분기
-                    const isPerm =
-                        error && (error.code === "PERMISSION_DENIED" || String(error).includes("Permission"));
-                    return {
-                        canProcess: false,
-                        reason: isPerm
-                            ? "권한 문제로 주문 조회가 제한되어 있습니다. 관리자에 문의해주세요."
-                            : "주문 상태 확인 중 오류가 발생했습니다.",
-                    };
-                }
-            }
-
-            // 교환/반품/취소 시 숨길 필드들
+            // 필드 DOM 참조
             const customerNameField = document.querySelector(
                 ".field:nth-child(3)"
             ); // 고객명
@@ -1727,8 +1709,7 @@
                 ".field:nth-child(9)"
             ); // 상세주소
             const memoField = document.querySelector(".field:nth-child(10)"); // 요청사항
-            const refundAccountField =
-                document.getElementById("refundAccountField"); // 환불 계좌정보
+            // 환불 계좌정보 필드는 1차 버전에서 제외됨
 
             // 상품/수량 필드 DOM
             const productField = document
@@ -1742,16 +1723,17 @@
             function resetFormValuesOnOrderTypeChange() {
                 try {
                     const fieldsToClearOnChange = [
-                        "existingOrderNumber",
                         "customerName",
                         "phone",
                         "zipcode",
                         "address",
                         "detailAddress",
                         "memo",
-                        "refundAccount",
+                        // "refundAccount", // 1차 버전에서 제외됨
                         "product",
                         "quantity",
+                        "searchCustomerName",
+                        "searchPhone"
                     ];
                     fieldsToClearOnChange.forEach((fieldId) => {
                         const el = document.getElementById(fieldId);
@@ -1815,157 +1797,42 @@
                     const processingLimits =
                         document.getElementById("processingLimits");
 
+
                     if (this.value === "배송조회") {
-                        // 배송조회에서는 불러오기 버튼 숨김
+                        // 배송조회 모드
+                        existingOrderField.style.display = "block";
+
+                        // 불러오기 버튼 숨김
                         try {
                             const loadBtn = document.getElementById("btnLoadExistingOrder");
                             if (loadBtn) loadBtn.style.display = "none";
                         } catch (_) {}
-                        // 배송조회: 주문번호만 입력, 나머지는 숨김
-                        existingOrderField.style.display = "block";
-                        existingOrderInput.required = true;
 
+                        // 다른 필드들 숨김
                         customerNameField.style.display = "none";
                         phoneField.style.display = "none";
                         zipcodeField.style.display = "none";
                         addressField.style.display = "none";
                         detailAddressField.style.display = "none";
                         memoField.style.display = "none";
-                        refundAccountField.style.display = "none";
+                        // refundAccountField는 1차 버전에서 제외됨
                         if (productField) productField.style.display = "none";
                         if (quantityField) quantityField.style.display = "none";
 
                         // 필수 해제
-                        if (customerNameInput)
-                            customerNameInput.required = false;
+                        if (customerNameInput) customerNameInput.required = false;
                         if (phoneInputEl) phoneInputEl.required = false;
                         if (productInput) productInput.required = false;
                         if (quantityInput) quantityInput.required = false;
 
-                        existingOrderInput.placeholder =
-                            "배송조회할 주문번호를 입력하세요";
                         if (submitBtn) {
                             submitBtn.disabled = false;
                             submitBtn.textContent = "🔍 배송조회하기";
                         }
-                        showInlineNotice("배송조회 모드입니다.\n주문번호 입력 후 조회 버튼을 눌러주세요.", 4000);
-                        // 조회 전 기존 입력값 초기화 (주문번호 포함)
-                        try {
-                            const fieldsToClear = [
-                                "customerName",
-                                "phone",
-                                "zipcode",
-                                "address",
-                                "detailAddress",
-                                "memo",
-                                "refundAccount",
-                                "product",
-                                "quantity",
-                            ];
-                            fieldsToClear.forEach((fieldId) => {
-                                const el = document.getElementById(fieldId);
-                                if (el) el.value = "";
-                            });
-                            existingOrderInput.value = "";
-                        } catch (_) {
-                            // no-op: 초기화 실패해도 기존 로직에는 영향 주지 않음
-                        }
-                        return;
-                    }
-
-                    if (this.value !== "신규주문") {
-                        // 교환/반품/취소에서는 불러오기 버튼 표시
-                        try {
-                            const loadBtn = document.getElementById("btnLoadExistingOrder");
-                            if (loadBtn) loadBtn.style.display = "inline-flex";
-                        } catch (_) {}
-                        // 교환/반품/취소 시 - 기존 주문번호 필드 표시
-                        existingOrderField.style.display = "block";
-                        existingOrderInput.required = true;
-
-                        // 처리 제한 안내 표시
-                        processingLimits.style.display = "block";
-
-                        // 기존 주문번호가 입력되어 있다면 상태 확인
-                        const existingOrderNumber =
-                            existingOrderInput.value.trim();
-                        if (existingOrderNumber) {
-                            const statusCheck = await checkOrderStatusForClaim(
-                                existingOrderNumber,
-                                this.value
-                            );
-                            if (!statusCheck.canProcess) {
-                                showMessage(
-                                    `❌ ${statusCheck.reason}`,
-                                    "error"
-                                );
-                                // 선택된 라디오 버튼을 그대로 유지 (되돌리지 않음)
-                                return;
-                            }
-                        }
-
-                        // 기존 주문번호, 상품명, 수량만 표시
-                        customerNameField.style.display = "none";
-                        phoneField.style.display = "none";
-                        zipcodeField.style.display = "none";
-                        addressField.style.display = "none";
-                        detailAddressField.style.display = "none";
-                        memoField.style.display = "block"; // 요청사항은 표시 (교환/반품/취소 사유)
-
-                        // 반품/취소 시에만 환불 계좌정보 표시
-                        if (this.value === "반품" || this.value === "취소") {
-                            refundAccountField.style.display = "block";
-                            document.getElementById(
-                                "refundAccount"
-                            ).required = true;
-                        } else {
-                            refundAccountField.style.display = "none";
-                            document.getElementById(
-                                "refundAccount"
-                            ).required = false;
-                        }
-
-                        if (productField) productField.style.display = "block";
-                        if (quantityField)
-                            quantityField.style.display = "block";
-                        // 안전상 제품/수량도 초기화 (신규주문에서 넘어온 값 제거)
-                        try {
-                            const pq = ["product", "quantity"];
-                            pq.forEach((id) => {
-                                const el = document.getElementById(id);
-                                if (el) el.value = "";
-                            });
-                        } catch (_) {}
-
-                        // 필수 해제 (숨긴 필드들)
-                        if (customerNameInput)
-                            customerNameInput.required = false;
-                        if (phoneInputEl) phoneInputEl.required = false;
-
-                        // 라벨과 플레이스홀더 변경
-                        memoLabel.textContent = "요청사항";
-                        memoInput.placeholder =
-                            "교환/반품/취소 사유를 입력해주세요";
-                        showInlineNotice(`${this.value} 모드입니다. \n기존 주문번호를 입력해 주세요.`);
-
-                        // 필드 초기화
-                        document.getElementById("customerName").value = "";
-                        document.getElementById("phone").value = "";
-                        document.getElementById("address").value = "";
-                        document.getElementById("detailAddress").value = "";
-                        document.getElementById("memo").value = "";
-                        document.getElementById("refundAccount").value = "";
-
-                        // 제출 가능
-                        if (submitBtn) {
-                            submitBtn.disabled = false;
-                            submitBtn.textContent = "📦 주문 접수하기";
-                        }
+                        showInlineNotice("배송조회 모드입니다.\n입금자명과 전화번호로 조회하세요.", 4000);
                     } else {
                         // 신규주문 시
                         existingOrderField.style.display = "none";
-                        existingOrderInput.required = false;
-                        existingOrderInput.value = "";
 
                         // 처리 제한 안내 숨김
                         processingLimits.style.display = "none";
@@ -1978,11 +1845,7 @@
                         detailAddressField.style.display = "block";
                         memoField.style.display = "block";
 
-                        // 환불 계좌정보 필드 숨김
-                        refundAccountField.style.display = "none";
-                        document.getElementById(
-                            "refundAccount"
-                        ).required = false;
+                        // 환불 계좌정보 필드는 1차 버전에서 제외됨
 
                         if (productField) productField.style.display = "block";
                         if (quantityField)
@@ -2007,112 +1870,364 @@
                 });
             });
 
-            // 기존 주문번호 입력 시 자동 정보 로드 및 상태 확인 (배송조회 제외)
-            async function handleExistingOrderNumberEntered() {
-                const inputEl = document.getElementById("existingOrderNumber");
-                const raw = inputEl.value || "";
-                const orderNumber = normalizeOrderNumber(raw);
-                const orderType = document.querySelector(
-                    'input[name="orderType"]:checked'
-                ).value;
+            // 주문번호 조회 기능은 제거됨 - 입금자명+전화번호로만 조회
 
-                if (!orderNumber) return;
+            // 주문번호 입력 필드는 제거됨 - 입금자명+전화번호로만 조회
 
-                // 배송조회 모드 처리: 상단 토스트로 배송 정보 표시
-                if (orderType === "배송조회") {
+            // 입금자명+전화번호로 조회하는 함수
+            async function searchOrderByNameAndPhone(customerName, phone) {
+                try {
+                    // 읽기 전에 익명 인증 보장 시도
                     try {
-                        console.log("배송조회 시작 - 주문번호:", orderNumber);
-                        const existingOrder = await findExistingOrder(orderNumber, "");
-                        console.log("검색된 주문:", existingOrder);
-                        
-                        if (existingOrder) {
-                            console.log("주문 상태:", existingOrder.status);
-                            console.log("택배사:", existingOrder.courier);
-                            console.log("송장번호:", existingOrder.invoiceNumber);
-                            
-                            // 송장 정보가 있으면 상태와 관계없이 표시
-                            if (existingOrder.invoiceNumber || existingOrder.courier) {
-                                const statusText = existingOrder.status === "배송완료" ? "✅ 배송완료" : 
-                                                 existingOrder.status === "배송중" ? "🚚 배송중" : 
-                                                 "📦 송장등록됨";
-                                showInlineNotice(
-                                    `${statusText}\n택배사: ${existingOrder.courier || "-"}\n송장번호: ${existingOrder.invoiceNumber || "-"}`,
-                                    6000
-                                );
-                            } else {
-                                showInlineNotice("🚚 아직 배송정보가 없거나 송장 미등록 상태입니다.", 4000);
-                            }
-                        } else {
-                            showInlineNotice("❌ 해당 주문번호를 찾을 수 없습니다.", 4000);
+                        if (!auth.currentUser) {
+                            await signInAnonymously(auth);
                         }
-                    } catch (error) {
-                        console.error("배송조회 오류:", error);
-                        showInlineNotice("❌ 배송조회 중 오류가 발생했습니다.", 4000);
-                    }
-                    return;
-                }
+                    } catch (_) {}
 
-                // 교환/반품/취소인 경우 주문 상태 확인
-                if (orderType !== "신규주문" && orderType !== "배송조회") {
-                    const statusCheck = await checkOrderStatusForClaim(
-                        orderNumber,
-                        orderType
-                    );
-                    if (!statusCheck.canProcess) {
-                        // 하단 메시지 대신 상단 토스트로 안내
-                        showInlineNotice(`❌ ${statusCheck.reason}`);
+                    const ordersRef = ref(database, "orders");
+                    const snapshot = await get(ordersRef);
+                    const data = snapshot.val();
+
+                    if (!data) return null;
+
+                    // 모든 월별 폴더에서 주문 검색
+                    let allOrders = [];
+                    for (const [yearMonth, monthOrders] of Object.entries(data)) {
+                        if (monthOrders && typeof monthOrders === "object") {
+                            const monthOrderEntries = Object.entries(monthOrders);
+                            allOrders = allOrders.concat(monthOrderEntries);
+                        }
+                    }
+
+                    // 입금자명과 전화번호로 검색
+                    const normalizedName = customerName.trim().toLowerCase();
+                    const normalizedPhone = normalizePhone(phone);
+
+                    const matchingOrders = allOrders.filter(([id, order]) => {
+                        const orderName = (order.customerName || "").trim().toLowerCase();
+                        const orderPhone = normalizePhone(order.phone || "");
+                        
+                        return orderName === normalizedName && orderPhone === normalizedPhone;
+                    });
+
+                    return matchingOrders.length > 0 ? matchingOrders : null;
+                    } catch (error) {
+                    console.error("입금자명+전화번호 조회 오류:", error);
+                    return null;
+                }
+            }
+
+            // 입금자명+전화번호 조회 버튼 이벤트
+            const btnSearchByNamePhone = document.getElementById("btnSearchByNamePhone");
+            if (btnSearchByNamePhone) {
+                btnSearchByNamePhone.addEventListener("click", async function () {
+                    const customerName = document.getElementById("searchCustomerName").value.trim();
+                    const phone = document.getElementById("searchPhone").value.trim();
+
+                    if (!customerName || !phone) {
+                        showMessage("❌ 입금자명과 전화번호를 모두 입력해주세요.", "error");
                         return;
                     }
-                }
 
-                if (orderType !== "신규주문" && orderType !== "배송조회") {
                     try {
-                        const existingOrder = await findExistingOrder(
-                            orderNumber,
-                            ""
-                        );
-                        if (existingOrder) {
-                            document.getElementById("customerName").value =
-                                existingOrder.customerName;
-                            document.getElementById("phone").value =
-                                existingOrder.phone;
-                            document.getElementById("product").value =
-                                existingOrder.product;
-                            document.getElementById("quantity").value =
-                                existingOrder.quantity;
-                            document.getElementById("address").value =
-                                existingOrder.address || "";
-                            document.getElementById("detailAddress").value =
-                                existingOrder.detailAddress || "";
-
-                            if (existingOrder.memo) {
-                                document.getElementById("memo").value = `[기존주문] ${existingOrder.memo}`;
+                        const matchingOrders = await searchOrderByNameAndPhone(customerName, phone);
+                        
+                        if (matchingOrders && matchingOrders.length > 0) {
+                            if (matchingOrders.length === 1) {
+                                // 단일 주문인 경우 바로 표시
+                                const [id, order] = matchingOrders[0];
+                                displayOrderInfo(order);
+                            } else {
+                                // 여러 주문인 경우 목록 표시
+                                showMultipleOrdersModal(matchingOrders);
                             }
-
-                            showInlineNotice(
-                                `✅ 기존 주문 정보를 불러왔습니다. (${existingOrder.customerName}님)`
-                            );
                         } else {
-                            showMessage(
-                                "❌ 해당 주문번호를 찾을 수 없습니다.",
-                                "error"
-                            );
+                            showMessage("❌ 해당 정보로 주문을 찾을 수 없습니다.", "error");
                         }
                     } catch (error) {
-                        console.error("기존 주문 검색 오류:", error);
+                        console.error("조회 오류:", error);
+                        showMessage("❌ 조회 중 오류가 발생했습니다.", "error");
                     }
-                }
-            }
-
-            const existingOrderInputEl = document.getElementById("existingOrderNumber");
-
-            // 수동 불러오기 버튼
-            const btnLoadExistingOrder = document.getElementById("btnLoadExistingOrder");
-            if (btnLoadExistingOrder) {
-                btnLoadExistingOrder.addEventListener("click", function () {
-                    handleExistingOrderNumberEntered();
                 });
             }
+
+            // 주문 정보 표시 함수 (모바일 최적화)
+            function displayOrderInfo(order) {
+                console.log("표시할 주문 데이터:", order); // 디버깅용
+                
+                const statusText = order.status === "배송완료" ? "✅ 배송완료" : 
+                                 order.status === "배송중" ? "🚚 배송중" : 
+                                 order.status === "교환요청" ? "🔄 교환요청" :
+                                 order.status === "반품요청" ? "↩️ 반품요청" :
+                                 "📦 접수됨";
+                
+                // 모바일에서 가독성을 위해 구조화된 정보 생성
+                let infoText = `📋 주문 정보\n`;
+                infoText += `━━━━━━━━━━━━━━━━━\n`;
+                infoText += `${statusText}\n\n`;
+                
+                infoText += `📝 기본 정보\n`;
+                infoText += `주문번호: ${order.orderNumber}\n`;
+                infoText += `고객명: ${order.customerName}\n`;
+                infoText += `연락처: ${order.phone}\n\n`;
+                
+                // 상품 정보 추가
+                if (order.product) {
+                    infoText += `🛍️ 상품 정보\n`;
+                    infoText += `상품명: ${order.product}`;
+                    if (order.quantity) {
+                        infoText += `\n수량: ${order.quantity}개`;
+                    }
+                    infoText += `\n\n`;
+                }
+                
+                // 주소 정보 추가
+                if (order.address) {
+                    infoText += `📍 배송 주소\n`;
+                    infoText += `${order.address}\n\n`;
+                }
+                
+                // 택배사와 송장번호 정보 추가
+                infoText += `🚚 배송 정보\n`;
+                if (order.courier || order.invoiceNumber) {
+                    infoText += `택배사: ${order.courier || "미등록"}\n`;
+                    infoText += `송장번호: ${order.invoiceNumber || "미등록"}`;
+                } else {
+                    infoText += `택배사: 미등록\n`;
+                    infoText += `송장번호: 미등록`;
+                }
+                infoText += `\n\n`;
+                
+                // 주문일시 추가
+                if (order.createdAt) {
+                    const orderDate = new Date(order.createdAt);
+                    infoText += `📅 주문일시\n`;
+                    infoText += `${orderDate.toLocaleString()}`;
+                }
+                
+                showMessage(infoText, "success");
+            }
+
+            // 전역 변수로 현재 모달의 주문 데이터 저장
+            let currentModalOrders = null;
+
+            // 여러 주문이 있을 때 모달 표시
+            function showMultipleOrdersModal(orders) {
+                // 전역 변수에 주문 데이터 저장
+                currentModalOrders = orders;
+                // 여러 주문 목록을 표시하는 모달 생성
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10000;
+                    padding: 16px;
+                    box-sizing: border-box;
+                `;
+                
+                modal.innerHTML = `
+                    <div style="
+                        background: white;
+                        padding: 20px;
+                        border-radius: 12px;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                        max-width: 500px;
+                        width: 100%;
+                        max-height: 80vh;
+                        overflow-y: auto;
+                        font-size: 14px;
+                        line-height: 1.5;
+                    ">
+                        <h3 style="margin: 0 0 16px 0;">🔍 ${orders.length}개의 주문을 찾았습니다</h3>
+                        <div style="margin-bottom: 16px; font-size: 14px; color: #666;">
+                            아래 주문 중에서 확인하고 싶은 주문을 선택하세요:
+                        </div>
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            ${orders.map(([id, order], index) => `
+                                <div style="
+                                    border: 1px solid #ddd;
+                                    border-radius: 8px;
+                                    padding: 16px;
+                                    margin-bottom: 12px;
+                                    cursor: pointer;
+                                    transition: all 0.2s;
+                                    background: white;
+                                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                                " 
+                                onmouseover="this.style.backgroundColor='#f8f9fa'; this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'"
+                                onmouseout="this.style.backgroundColor='white'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'"
+                                onclick="selectOrderFromModal('${id}', '${order.orderNumber}')">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="font-weight: 600; font-size: 15px; color: #333; margin-bottom: 6px;">
+                                                ${order.orderNumber}
+                                            </div>
+                                            <div style="font-size: 13px; color: #666; margin-bottom: 4px; line-height: 1.4;">
+                                                ${order.product} (${order.quantity}개)
+                                            </div>
+                                            <div style="font-size: 12px; color: #888; line-height: 1.3;">
+                                                ${order.customerName} | ${order.phone}
+                                            </div>
+                                        </div>
+                                        <div style="text-align: right; flex-shrink: 0; margin-left: 12px;">
+                                            <div style="
+                                                padding: 6px 10px;
+                                                border-radius: 16px;
+                                                font-size: 12px;
+                                                font-weight: 600;
+                                                color: white;
+                                                background-color: ${getStatusColor(order.status)};
+                                                display: inline-block;
+                                                margin-bottom: 6px;
+                                                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                                            ">
+                                                ${order.status}
+                                            </div>
+                                            <div style="font-size: 11px; color: #888; line-height: 1.2;">
+                                                ${new Date(order.createdAt).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div style="text-align: right; margin-top: 16px;">
+                            <button onclick="closeMultipleOrdersModal()" style="
+                                padding: 10px 20px;
+                                border: 1px solid #ddd;
+                                border-radius: 6px;
+                                background: #f8f9fa;
+                                color: #333;
+                                font-size: 14px;
+                                font-weight: 500;
+                                cursor: pointer;
+                                transition: all 0.2s;
+                                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                            " 
+                            onmouseover="this.style.background='#e9ecef'; this.style.borderColor='#adb5bd'"
+                            onmouseout="this.style.background='#f8f9fa'; this.style.borderColor='#ddd'"
+                            >닫기</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // 모달 외부 클릭 시 닫기
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeMultipleOrdersModal();
+                    }
+                });
+            }
+
+            // 상태별 색상 반환
+            function getStatusColor(status) {
+                const colors = {
+                    '접수': '#ffc107',
+                    '배송중': '#17a2b8',
+                    '배송완료': '#28a745',
+                    '교환요청': '#fd7e14',
+                    '반품요청': '#dc3545',
+                    '취소': '#6c757d'
+                };
+                return colors[status] || '#6c757d';
+            }
+
+            // 모달에서 주문 선택 (전역 함수)
+            window.selectOrderFromModal = function(orderId, orderNumber) {
+                // 선택된 주문의 상세 정보를 표시
+                try {
+                    console.log("선택된 주문 ID:", orderId, "주문번호:", orderNumber);
+                    console.log("현재 모달의 주문 데이터:", currentModalOrders);
+                    
+                    // 로딩 메시지 표시
+                    showMessage("🔄 주문 정보를 불러오는 중...", "info");
+                    
+                    // 전역 변수에서 주문 찾기
+                    if (currentModalOrders) {
+                        const foundOrder = currentModalOrders.find(([id, order]) => id === orderId);
+                        if (foundOrder) {
+                            const [id, order] = foundOrder;
+                            console.log("찾은 주문 데이터:", order);
+                            displayOrderInfo(order);
+                            closeMultipleOrdersModal();
+                            return;
+                        }
+                    }
+                    
+                    // 전역 변수에서 찾지 못한 경우 Firebase에서 검색
+                    console.log("전역 변수에서 찾지 못함. Firebase에서 검색...");
+                    const ordersRef = ref(database, "orders");
+                    get(ordersRef).then((snapshot) => {
+                        const allOrders = snapshot.val();
+                        if (!allOrders) {
+                            showMessage("❌ 주문 데이터를 찾을 수 없습니다.", "error");
+                            closeMultipleOrdersModal();
+                            return;
+                        }
+                        
+                        console.log("전체 주문 데이터 구조:", allOrders);
+                        
+                        // 모든 주문을 평면화하여 검색
+                        const allOrdersList = [];
+                        Object.keys(allOrders).forEach(year => {
+                            if (allOrders[year] && typeof allOrders[year] === 'object') {
+                                Object.keys(allOrders[year]).forEach(month => {
+                                    if (allOrders[year][month] && typeof allOrders[year][month] === 'object') {
+                                        Object.keys(allOrders[year][month]).forEach(id => {
+                                            if (allOrders[year][month][id] && allOrders[year][month][id].orderNumber) {
+                                                allOrdersList.push([id, allOrders[year][month][id]]);
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                        
+                        console.log("평면화된 주문 목록:", allOrdersList);
+                        console.log("찾고 있는 ID:", orderId);
+                        
+                        // 해당 ID의 주문 찾기
+                        const foundOrder = allOrdersList.find(([id, order]) => id === orderId);
+                        if (foundOrder) {
+                            const [id, order] = foundOrder;
+                            console.log("찾은 주문 데이터:", order);
+                            displayOrderInfo(order);
+                            closeMultipleOrdersModal();
+                        } else {
+                            console.log("주문을 찾을 수 없음. 사용 가능한 ID들:", allOrdersList.map(([id, order]) => id));
+                            showMessage("❌ 선택된 주문 정보를 찾을 수 없습니다.", "error");
+                            closeMultipleOrdersModal();
+                        }
+                    }).catch((error) => {
+                        console.error("주문 정보 조회 오류:", error);
+                        showMessage("❌ 주문 정보를 불러오는 중 오류가 발생했습니다.", "error");
+                        closeMultipleOrdersModal();
+                    });
+                } catch (error) {
+                    console.error("주문 선택 오류:", error);
+                    showMessage("❌ 주문 선택 중 오류가 발생했습니다.", "error");
+                    closeMultipleOrdersModal();
+                }
+            };
+
+            // 여러 주문 모달 닫기 (전역 함수)
+            window.closeMultipleOrdersModal = function() {
+                const modal = document.querySelector('[style*="z-index: 10000"]');
+                if (modal) {
+                    modal.remove();
+                }
+                // 전역 변수 초기화
+                currentModalOrders = null;
+            };
 
             // 주소 찾기 기능 (Daum 우편번호 API)
             document
@@ -2170,57 +2285,32 @@
                     if (orderType === "배송조회") {
                         e.preventDefault(); // 폼 제출 방지
 
-                        const orderNumber = document
-                            .getElementById("existingOrderNumber")
-                            .value.trim();
-                        if (!orderNumber) {
-                            showMessage("❌ 주문번호를 입력해주세요.", "error");
-                            return;
-                        }
-
-                        try {
-                            // 정확한 주문번호로 검색 (부분 일치가 아닌 완전 일치)
-                            const existingOrder = await findExistingOrder(
-                                orderNumber,
-                                ""
-                            );
-                            if (existingOrder) {
-                                // 주문번호가 정확히 일치하는지 확인
-                                if (existingOrder.orderNumber !== orderNumber) {
-                                    showMessage(
-                                        "❌ 주문번호가 정확히 일치하지 않습니다.",
-                                        "error"
-                                    );
+                        // 1차 버전: 입금자명+전화번호로만 조회
+                        const customerName = document.getElementById("searchCustomerName").value.trim();
+                        const phone = document.getElementById("searchPhone").value.trim();
+                        
+                        if (!customerName || !phone) {
+                            showMessage("❌ 입금자명과 전화번호를 모두 입력해주세요.", "error");
                                     return;
                                 }
 
-                                // 송장 정보가 있으면 상태와 관계없이 표시
-                                if (existingOrder.invoiceNumber || existingOrder.courier) {
-                                    const statusText = existingOrder.status === "배송완료" ? "✅ 배송완료" : 
-                                                     existingOrder.status === "배송중" ? "🚚 배송중" : 
-                                                     "📦 송장등록됨";
-                                    showMessage(
-                                        `${statusText}\n택배사: ${existingOrder.courier || "-"}\n송장번호: ${existingOrder.invoiceNumber || "-"}`,
-                                        "success"
-                                    );
+                        try {
+                            const matchingOrders = await searchOrderByNameAndPhone(customerName, phone);
+                            if (matchingOrders) {
+                                if (matchingOrders.length === 1) {
+                                    // 단일 주문인 경우 바로 표시
+                                    const [id, order] = matchingOrders[0];
+                                    displayOrderInfo(order);
                                 } else {
-                                    showMessage(
-                                        "🚚 아직 배송정보가 없거나 송장 미등록 상태입니다.",
-                                        "warning"
-                                    );
+                                    // 여러 주문인 경우 목록 표시
+                                    showMultipleOrdersModal(matchingOrders);
                                 }
                             } else {
-                                showMessage(
-                                    "❌ 해당 주문번호를 찾을 수 없습니다.",
-                                    "error"
-                                );
+                                showMessage("❌ 해당 정보로 주문을 찾을 수 없습니다.", "error");
                             }
                         } catch (error) {
                             console.error("배송조회 오류:", error);
-                            showMessage(
-                                "❌ 배송조회 중 오류가 발생했습니다.",
-                                "error"
-                            );
+                            showMessage("❌ 배송조회 중 오류가 발생했습니다.", "error");
                         }
                         return;
                     }
